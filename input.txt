@@ -1,0 +1,6 @@
+{
+	"nodelist" : [ 
+		{"x":200,"y":200,"view_x":1,"view_y":0,"view_angle":90,"view_distance":200,"radius":15},
+		{"x":400,"y":400,"view_x":1,"view_y":1,"view_angle":90,"view_distance":80,"radius":15}
+	]
+}
