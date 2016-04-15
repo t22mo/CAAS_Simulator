@@ -28,6 +28,16 @@ public class TargetObject {
 	public void update() {
 		pos.x += speed * dirNormal.x;
 		pos.y += speed * dirNormal.y;
+		
+		if(pos.x<15)
+			pos.x = 15;
+		if(pos.x>585)
+			pos.x = 585;
+		if(pos.y<15)
+			pos.y = 15;
+		if(pos.y>585)
+			pos.y = 585;
+		
 	}
 	public void draw(ShapeRenderer sRenderer)
 	{

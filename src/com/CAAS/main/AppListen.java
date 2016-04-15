@@ -10,11 +10,15 @@ import org.json.simple.JSONValue;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
+import com.CAAS.data.BlockToggleButton;
 import com.CAAS.data.CameraNode;
+import com.CAAS.data.SimulatorState;
 import com.CAAS.data.TargetObject;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
@@ -27,32 +31,48 @@ public class AppListen implements ApplicationListener {
 	TargetObject			targetObj; 
 	SpriteBatch				spriteBatch;
 	ShapeRenderer			sRenderer;
+	BitmapFont				font;
+	SimulatorState			state;
+	BlockToggleButton		blockToggleBtn;
 	
 	@Override
 	public void create() {
 		
+		ArrayList<Texture> bToggleTexList = new ArrayList<Texture>();
+		bToggleTexList.add(new Texture(Gdx.files.internal("res/img/blocktoggle_0.png")));
+		bToggleTexList.add(new Texture(Gdx.files.internal("res/img/blocktoggle_1.png")));
+		bToggleTexList.add(new Texture(Gdx.files.internal("res/img/blocktoggle_2.png")));
+		bToggleTexList.add(new Texture(Gdx.files.internal("res/img/blocktoggle_3.png")));
+		
+		//read json file
 		JSONObject inputJson = readFile();
 		JSONArray nodeListJson = (JSONArray) inputJson.get("nodelist");
 		
-		//instantiate
+		//instantiate node info from json
 		camList = new ArrayList<CameraNode>();
-		
 		for(int i=0 ; i<nodeListJson.size() ; i++)
 		{
 			JSONObject nodeJson = (JSONObject)nodeListJson.get(i);
-			double x		= (double)(long)nodeJson.get("x");
-			double y		= (double)(long)nodeJson.get("y");
-			double v_x		= (double)(long)nodeJson.get("view_x");
-			double v_y		= (double)(long)nodeJson.get("view_y");
-			double vAngle	= (double)(long)nodeJson.get("view_angle");
-			double vDis		= (double)(long)nodeJson.get("view_distance");
-			int radius		= (int)(long)	nodeJson.get("radius");
+			double	x		= (double)(long)nodeJson.get("x");
+			double	y		= (double)(long)nodeJson.get("y");
+			double	v_x		= (double)(long)nodeJson.get("view_x");
+			double	v_y		= (double)(long)nodeJson.get("view_y");
+			double	vAngle	= (double)(long)nodeJson.get("view_angle");
+			double	vDis	= (double)(long)nodeJson.get("view_distance");
+			int		id		= (int)(long)	nodeJson.get("id");
+
 			
-			camList.add(new CameraNode(x,y,v_x,v_y,vAngle,vDis,radius));
+			camList.add(new CameraNode(x,y,v_x,v_y,vAngle,vDis,id));
 		}
-		targetObj	= new TargetObject();
-		spriteBatch	= new SpriteBatch();
-		sRenderer	= new ShapeRenderer();
+		
+		//instantiate
+		state			= new SimulatorState();
+		targetObj		= new TargetObject();
+		spriteBatch		= new SpriteBatch();
+		sRenderer		= new ShapeRenderer();
+		blockToggleBtn	= new BlockToggleButton(600, 540 , 100, 40, bToggleTexList );
+		font			= new BitmapFont(Gdx.files.internal("res/font/mspgothic.fnt"),Gdx.files.internal("res/font/mspgothic.png"),false);
+		//font.getData().setScale(0.9f);
 	}
 	
 	public void update()
@@ -62,33 +82,43 @@ public class AppListen implements ApplicationListener {
 	}
 	public void draw()
 	{
-
-		/*
 		
-		spriteBatch.begin();
-		targetObj.draw(spriteBatch);
-		for(int i=0 ; i<camList.size() ; i++)
-		{
-			camList.get(i).draw(spriteBatch);
-		}
-		spriteBatch.end();
-		*/
-		
+		// shape rendering
 		sRenderer.begin(ShapeType.Filled);
+		//---------------------------------------
 		
+		sRenderer.setColor(0,0,0,1);
+		sRenderer.rect(600, 0, 100,600);
+		
+		targetObj.draw(sRenderer);
 		for(int i=0 ; i<camList.size() ; i++)
 		{
 			camList.get(i).draw(sRenderer);
 		}
-		targetObj.draw(sRenderer);
 		
+		//---------------------------------------
 		sRenderer.end();
+		
+		//text, texture rendering
+		spriteBatch.begin();
+		//---------------------------------------
+		blockToggleBtn.draw(spriteBatch);
+		font.draw(spriteBatch,"Time: "+ String.format("%.1f",elapsedTime) , 5,595);	
+		font.draw(spriteBatch,"X: "+ String.format("%.1f",targetObj.pos.x) +" Y:"+ String.format("%.1f",targetObj.pos.y), 5,580);	
+		
+		for(int i=0 ; i<camList.size() ; i++)
+		{
+			camList.get(i).draw(spriteBatch,font);
+		}
+		//---------------------------------------
+		spriteBatch.end();
 	}
 
 	@Override
 	public void dispose() {
 		// TODO Auto-generated method stub
-		
+		spriteBatch.dispose();
+		sRenderer.dispose();
 	}
 
 	@Override
@@ -100,8 +130,10 @@ public class AppListen implements ApplicationListener {
 	@Override
 	public void render() {
 		// TODO Auto-generated method stub
-		Gdx.gl.glClearColor(0,0,0,1);
+		Gdx.gl.glClearColor(1,1,1,1);
 		Gdx.gl.glClear(GL11.GL_COLOR_BUFFER_BIT );
+		Gdx.gl.glEnable(GL11.GL_BLEND);
+		Gdx.gl.glBlendFunc(GL11.GL_SRC_ALPHA,GL11.GL_ONE_MINUS_SRC_ALPHA);
 		elapsedTime += Gdx.graphics.getDeltaTime();
 		update();
 		draw();
@@ -160,6 +192,9 @@ public class AppListen implements ApplicationListener {
 			targetObj.dirNormal.x+=1;
 		}
 		targetObj.dirNormal.normalize();
+		
+		//버튼 입력 처리
+		blockToggleBtn.inputUpdate();
 	}
 	
 }
