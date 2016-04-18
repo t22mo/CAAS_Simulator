@@ -1,0 +1,10 @@
+{
+	"nodelist" : [ 
+		{"id":1,"x":200,"y":200,"view_x":1,"view_y":0,"view_angle":90,"view_distance":200},
+		{"id":2,"x":400,"y":400,"view_x":1,"view_y":1,"view_angle":90,"view_distance":80},
+		{"id":3,"x":100,"y":100,"view_x":-1,"view_y":1,"view_angle":90,"view_distance":80},
+		{"id":4,"x":300,"y":300,"view_x":2,"view_y":4,"view_angle":90,"view_distance":80},
+		{"id":5,"x":250,"y":500,"view_x":-3,"view_y":-3,"view_angle":90,"view_distance":80},
+		{"id":6,"x":350,"y":100,"view_x":1,"view_y":-2,"view_angle":90,"view_distance":80}
+	]
+}

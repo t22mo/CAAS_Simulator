@@ -1,0 +1,7 @@
+{
+	"nodelist" : [ 
+		{"id":1,"x":300,"y":300,"view_x":0,"view_y":1,"view_angle":90,"view_distance":200},
+		
+
+	]
+}
