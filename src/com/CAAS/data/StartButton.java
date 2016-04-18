@@ -16,6 +16,7 @@ public class StartButton extends Button {
 
 	@Override
 	public void inputUpdate() {
+		int sel;
 		// TODO Auto-generated method stub
 		if(Gdx.input.isTouched())
 		{
@@ -27,10 +28,21 @@ public class StartButton extends Button {
 				if(isContaining(x, y))
 				{
 					touchFlag = true;
-					SimulatorState.simulatorState = !SimulatorState.simulatorState;
-					TargetObject.getInstance().checkInRange( CameraNode.getInstance() );
+					
+					if(SimulatorState.simulatorState == false)
+					{
+						if(TargetObject.getInstance().checkInRange( CameraNode.getInstance() )!=-1)
+							SimulatorState.simulatorState = !SimulatorState.simulatorState;
+						else
+						{
+							
+						}
+					}
+					else
+						SimulatorState.simulatorState = !SimulatorState.simulatorState;
 				}
 			}
+			
 		}
 		else
 			touchFlag = false;
