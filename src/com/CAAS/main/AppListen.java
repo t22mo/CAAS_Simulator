@@ -8,11 +8,10 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
-
 import com.CAAS.data.BlockToggleButton;
 import com.CAAS.data.CameraNode;
 import com.CAAS.data.SimulatorState;
+import com.CAAS.data.StartButton;
 import com.CAAS.data.TargetObject;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
@@ -34,22 +33,28 @@ public class AppListen implements ApplicationListener {
 	BitmapFont				font;
 	SimulatorState			state;
 	BlockToggleButton		blockToggleBtn;
+	StartButton				startBtn;
 	
 	@Override
 	public void create() {
 		
+		//load textures
 		ArrayList<Texture> bToggleTexList = new ArrayList<Texture>();
 		bToggleTexList.add(new Texture(Gdx.files.internal("res/img/blocktoggle_0.png")));
 		bToggleTexList.add(new Texture(Gdx.files.internal("res/img/blocktoggle_1.png")));
 		bToggleTexList.add(new Texture(Gdx.files.internal("res/img/blocktoggle_2.png")));
 		bToggleTexList.add(new Texture(Gdx.files.internal("res/img/blocktoggle_3.png")));
 		
+		ArrayList<Texture> startTexList = new ArrayList<Texture>();
+		startTexList.add(new Texture(Gdx.files.internal("res/img/start_0.png")));
+		startTexList.add(new Texture(Gdx.files.internal("res/img/start_1.png")));
+		
 		//read json file
 		JSONObject inputJson = readFile();
 		JSONArray nodeListJson = (JSONArray) inputJson.get("nodelist");
 		
 		//instantiate node info from json
-		camList = new ArrayList<CameraNode>();
+		camList = CameraNode.getInstance();
 		for(int i=0 ; i<nodeListJson.size() ; i++)
 		{
 			JSONObject nodeJson = (JSONObject)nodeListJson.get(i);
@@ -67,12 +72,13 @@ public class AppListen implements ApplicationListener {
 		
 		//instantiate
 		state			= new SimulatorState();
-		targetObj		= new TargetObject();
+		targetObj		= TargetObject.getInstance();
 		spriteBatch		= new SpriteBatch();
 		sRenderer		= new ShapeRenderer();
 		blockToggleBtn	= new BlockToggleButton(600, 540 , 100, 40, bToggleTexList );
+		startBtn		= new StartButton(600, 490, 100, 40, startTexList);
 		font			= new BitmapFont(Gdx.files.internal("res/font/mspgothic.fnt"),Gdx.files.internal("res/font/mspgothic.png"),false);
-		//font.getData().setScale(0.9f);
+	//	font.getData().setScale(1);
 	}
 	
 	public void update()
@@ -103,6 +109,7 @@ public class AppListen implements ApplicationListener {
 		spriteBatch.begin();
 		//---------------------------------------
 		blockToggleBtn.draw(spriteBatch);
+		startBtn.draw(spriteBatch);
 		font.draw(spriteBatch,"Time: "+ String.format("%.1f",elapsedTime) , 5,595);	
 		font.draw(spriteBatch,"X: "+ String.format("%.1f",targetObj.pos.x) +" Y:"+ String.format("%.1f",targetObj.pos.y), 5,580);	
 		
@@ -134,7 +141,10 @@ public class AppListen implements ApplicationListener {
 		Gdx.gl.glClear(GL11.GL_COLOR_BUFFER_BIT );
 		Gdx.gl.glEnable(GL11.GL_BLEND);
 		Gdx.gl.glBlendFunc(GL11.GL_SRC_ALPHA,GL11.GL_ONE_MINUS_SRC_ALPHA);
-		elapsedTime += Gdx.graphics.getDeltaTime();
+		
+		if(SimulatorState.simulatorState==true)
+			elapsedTime += Gdx.graphics.getDeltaTime();
+		
 		update();
 		draw();
 	}
@@ -172,7 +182,7 @@ public class AppListen implements ApplicationListener {
 	}
 	public void inputUpdate()
 	{
-		//방향키 처리
+		//Direction key input  
 		targetObj.dirNormal.x = 0;
 		targetObj.dirNormal.y = 0;
 		if(Gdx.input.isKeyPressed(Input.Keys.UP ) )
@@ -191,10 +201,11 @@ public class AppListen implements ApplicationListener {
 		{
 			targetObj.dirNormal.x+=1;
 		}
-		targetObj.dirNormal.normalize();
+		targetObj.dirNormal.normalize();		
 		
-		//버튼 입력 처리
+		//Button clicks
 		blockToggleBtn.inputUpdate();
+		startBtn.inputUpdate();
 	}
 	
 }

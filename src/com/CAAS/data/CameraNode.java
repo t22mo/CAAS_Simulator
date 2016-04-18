@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 
 public class CameraNode {
+	public static ArrayList<CameraNode> instance = new ArrayList<CameraNode>();
+	
 	Vector2D pos; //위치 
 	Vector2D dirNormal; //방향벡터
 	double vAngle; //시야각
@@ -24,10 +24,17 @@ public class CameraNode {
 	Texture visionTexture;
 	ArrayList<BlockData> blockList;
 	
+	
 	public static final float[] r = {0.7f, 0.933f, 0.172f , 0.191f};
 	public static final float[] g = {0.7f, 0.3f	 , 0.465f , 0.980f};
 	public static final float[] b = {0.7f, 0.176f, 0.938f , 0.566f};
 	public static final String[] blockTxt = {"Device info","Monitoring block","Route Block","Device Block"};
+	
+	public static ArrayList<CameraNode> getInstance()
+	{
+		return instance;
+	}	
+	
 	public CameraNode(double x,double y,double v_x, double v_y,double vAngle,double vDis,int id)
 	{
 		pos 		= new Vector2D(x, y);
@@ -48,7 +55,6 @@ public class CameraNode {
 		for(int i=0 ; i<5 ; i++)
 		{
 			blockList.add(new BlockData( (new Random().nextInt(4)+1 )));
-			System.out.println(blockList.get(i).type);
 		}
 		
 	}
@@ -106,6 +112,7 @@ public class CameraNode {
 			theta+=180;
 		
 		sAngle = theta - vAngle/2;
+	//	System.out.println(sAngle +" "+(sAngle+vAngle));
 	
 	}
 	
