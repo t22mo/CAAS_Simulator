@@ -14,7 +14,6 @@ public class SubscribeWorker extends AbstractVerticle {
 
     @Override
     public void start() throws Exception {
-        System.out.println("asdfasdf");
         Global global = Global.getInstance();
         EventBus eventBus = getVertx().eventBus();
 

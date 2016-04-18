@@ -13,9 +13,9 @@ import java.util.Stack;
  */
 public class Global {
     private static Global instance;
-    public Stack<Integer> availableCameraNodeID = new Stack<Integer>();
-    public ArrayList<CameraNode> camList;
-    public HashMap<Integer,NetSocket> socketList = new HashMap<Integer, NetSocket>();
+    public static Stack<Integer> availableCameraNodeID = new Stack<Integer>();
+    public static ArrayList<CameraNode> camList;
+    public static HashMap<Integer,NetSocket> socketList = new HashMap<Integer, NetSocket>();
 
     private Global(){}
     public static synchronized Global getInstance() {

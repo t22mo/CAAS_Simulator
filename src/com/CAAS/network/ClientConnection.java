@@ -28,9 +28,11 @@ public class ClientConnection {
     public void init(){
         //ClientConnection 초기화
         try {
+
             // 커넥션 요청에 대한 Ack Message 전송
             int id = global.availableCameraNodeID.pop();
-            this.camNode = global.camList.get(id);
+
+            this.camNode = global.camList.get(id-1);
             ChainMessageProtocol msg = new ChainMessageProtocol("simulator_connection_ok");
             msg.put("id",camNode.id);
             msg.put("location_x",camNode.pos.x);
@@ -43,12 +45,12 @@ public class ClientConnection {
 
             // 전역 socket 리스트에 추가
             global.socketList.put(camNode.port,socket);
-            System.out.println("Client Node on id " + camNode.id + " is connected");
+            System.out.println("클라이언트 (ID : " + camNode.id + ")가 연결 되었습니다.");
         }catch(EmptyStackException e){
             // 커넥션 풀 다찼으므로 거부
             ChainMessageProtocol msg = new ChainMessageProtocol("simulator_connection_refuse");
             socket.write(msg.encode());
-            System.out.println("Client Node is refused because of full of connection");
+            System.out.println("클라이언트 노드가 꽉 찼습니다. 연결을 진행 할 수 없습니다.");
         }
 
         // Data Handler
@@ -65,6 +67,7 @@ public class ClientConnection {
         socket.closeHandler(v -> {
             global.socketList.remove(camNode.port);
             global.availableCameraNodeID.push(camNode.id);
+            System.out.println("ID" + camNode.id + " 클라이언트 노드 연결이 끊겼습니다. 해당 카메라 노드가 다른 클라이언트에 할당됩니다.");
         });
     }
 

@@ -77,7 +77,7 @@ public class AppListen implements ApplicationListener {
 			int port = (int)(long)nodeJson.get("port");
 
 			// 현재 이용가능한 카메라 노드 ID 리스트 생성
-			global.availableCameraNodeID.push(i);
+			global.availableCameraNodeID.push(id);
 			camList.add(new CameraNode(x,y,v_x,v_y,vAngle,vDis,id,port));
 		}
 		global.camList = camList;
