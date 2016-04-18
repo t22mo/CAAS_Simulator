@@ -54,19 +54,27 @@ public class TargetObject {
 	}
 	public int checkInRange(ArrayList<CameraNode> arr)
 	{
-		for( CameraNode cn : arr)
+		double max=-99999;
+		int sel=-1;
+		
+		for(int i=0 ; i<arr.size() ; i++)
 		{
+			CameraNode cn = arr.get(i);
 			double dis = getDistance(cn.pos,this.pos);
 			double angle = calcAngle(cn.pos,this.pos);
 			
 			if(dis<cn.vDis && isInRange(cn.sAngle,cn.vAngle,angle))
 			{
-				System.out.println(cn.id);
+				double area = getIntersectingArea(cn, 20, 200);
+				if(max<area)
+				{
+					max = area;
+					sel = i;
+				}
 			}
 		}		
-		return 0;
+		return sel;
 	}
-	
 	public double getDistance(Vector2D a,Vector2D b)
 	{
 		return Math.sqrt( Math.pow((a.x-b.x),2) + Math.pow((a.y-b.y),2) );
@@ -107,4 +115,61 @@ public class TargetObject {
 		
 		return false;
 	}
+	public double getIntersectingArea( CameraNode target, int n, double len)
+	{
+		double area = 0, sq3 = Math.sqrt(3);
+		ArrayList<Vector2D> vList = new ArrayList<Vector2D>();
+		boolean[] chk = new boolean[6];
+		
+		if(dirNormal.x==0 && dirNormal.y==0)
+			return -1;
+		
+		for(int i=0 ; i<6 ; i++)
+			vList.add(new Vector2D(0,0));
+		vList.get(1).x = vList.get(3).x = vList.get(5).x = this.pos.x;
+		vList.get(1).y = vList.get(3).y = vList.get(5).y = this.pos.y;
+		
+		for(int i=1 ; i<=n ; i++)
+		{
+			vList.get(0).x = vList.get(1).x;
+			vList.get(0).y = vList.get(1).y;
+			
+			vList.get(1).x += (len / (double)n) * this.dirNormal.x;
+			vList.get(1).y += (len / (double)n) * this.dirNormal.y;
+			
+			vList.get(2).x = vList.get(3).x;  
+			vList.get(2).y = vList.get(3).y; 
+			
+			vList.get(3).x += ((len / sq3) / (double)n) * this.dirNormal.y;
+			vList.get(3).x += (len / (double)n) * this.dirNormal.x;
+			vList.get(3).y -= ((len / sq3) / (double)n) * this.dirNormal.x;
+			vList.get(3).y += (len / (double)n) * this.dirNormal.y;
+			
+			vList.get(4).x = vList.get(5).x;
+			vList.get(4).y = vList.get(5).y;
+			
+			vList.get(5).x -= ((len / sq3) / (double)n) * this.dirNormal.y;
+			vList.get(5).x += (len / (double)n) * this.dirNormal.x;
+			vList.get(5).y += ((len / sq3) / (double)n) * this.dirNormal.x;			
+			vList.get(5).y += (len / (double)n) * this.dirNormal.y;
+			
+			for(int j=0 ; j<6 ; j++)
+			{
+				if(getDistance(vList.get(j),target.pos) < target.vDis && isInRange(target.sAngle,target.vAngle,calcAngle(target.pos,vList.get(j))))
+					chk[j] = true;
+				else
+					chk[j] = false;
+			}
+			if(chk[0] && chk[1])
+			{
+				if(chk[2] && chk[3])
+					area+= Math.pow(len,2) * (2*i-1) / ( 2*sq3*Math.pow(n, 2) );
+				if(chk[4] && chk[5])
+					area+= Math.pow(len,2) * (2*i-1) / ( 2*sq3*Math.pow(n, 2) );
+			}
+					
+		}
+		return area;
+	}
 }
+
