@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 
+import io.vertx.core.Vertx;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -34,10 +35,11 @@ public class AppListen implements ApplicationListener {
 	SimulatorState			state;
 	BlockToggleButton		blockToggleBtn;
 	StartButton				startBtn;
-	
+	Vertx vertx;
 	@Override
 	public void create() {
-		
+		// vertx instance
+		vertx = Vertx.vertx();
 		//load textures
 		ArrayList<Texture> bToggleTexList = new ArrayList<Texture>();
 		bToggleTexList.add(new Texture(Gdx.files.internal("res/img/blocktoggle_0.png")));
@@ -52,7 +54,7 @@ public class AppListen implements ApplicationListener {
 		//read json file
 		JSONObject inputJson = readFile();
 		JSONArray nodeListJson = (JSONArray) inputJson.get("nodelist");
-		
+
 		//instantiate node info from json
 		camList = CameraNode.getInstance();
 		for(int i=0 ; i<nodeListJson.size() ; i++)
@@ -65,9 +67,10 @@ public class AppListen implements ApplicationListener {
 			double	vAngle	= (double)(long)nodeJson.get("view_angle");
 			double	vDis	= (double)(long)nodeJson.get("view_distance");
 			int		id		= (int)(long)	nodeJson.get("id");
+			int port = (int)(long)nodeJson.get("port");
 
 			
-			camList.add(new CameraNode(x,y,v_x,v_y,vAngle,vDis,id));
+			camList.add(new CameraNode(x,y,v_x,v_y,vAngle,vDis,id,port,vertx));
 		}
 		
 		//instantiate
