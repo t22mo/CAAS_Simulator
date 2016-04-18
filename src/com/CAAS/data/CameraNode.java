@@ -18,20 +18,19 @@ import io.vertx.core.net.NetSocket;
 
 public class CameraNode {
 	public static ArrayList<CameraNode> instance = new ArrayList<CameraNode>();
-	Vector2D pos; //위치 
-	Vector2D dirNormal; //방향벡터
-	double vAngle; //시야각
-	double vDis; //시야 범위
-	int radius = 5; //반지름
-	double sAngle; //시야 환산
-	boolean active;
-	int id; //식별자
-	int port; // 포트
-    NetSocket socket; // 클라이언트 커넥션 소켓
+	public Vector2D pos; //위치
+	public Vector2D dirNormal; //방향벡터
+	public double vAngle; //시야각
+	public double vDis; //시야 범위
+	public int radius = 5; //반지름
+	public double sAngle; //시야 환산
+	public boolean active;
+	public int id; //식별자
+	public int port; // 포트
 	Texture nodeTexture;
 	Texture visionTexture;
 	ArrayList<BlockData> blockList;
-	Vertx vertx;
+
 	
 	public static final float[] r = {0.7f, 0.933f, 0.172f , 0.191f};
 	public static final float[] g = {0.7f, 0.3f	 , 0.465f , 0.980f};
@@ -43,10 +42,8 @@ public class CameraNode {
 		return instance;
 	}	
 	
-	public CameraNode(double x,double y,double v_x, double v_y,double vAngle,double vDis,int id, int port, Vertx vertx)
+	public CameraNode(double x,double y,double v_x, double v_y,double vAngle,double vDis,int id, int port)
 	{
-		this.vertx = vertx;
-        setConnection();
 		pos 		= new Vector2D(x, y);
 		dirNormal 	= new Vector2D(v_x,v_y);	
 		
@@ -126,13 +123,4 @@ public class CameraNode {
 	
 	}
 
-	public void setConnection(){
-		NetClient client = vertx.createNetClient();
-        client.connect(port, "localhost", res -> {
-           if(res.succeeded()) {
-               System.out.println("Connected to " + port + "port ClientNode");
-               NetSocket socket = res.result();
-           }
-        });
-	}
 }
