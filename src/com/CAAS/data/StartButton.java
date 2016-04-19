@@ -35,7 +35,7 @@ public class StartButton extends Button {
 							SimulatorState.simulatorState = !SimulatorState.simulatorState;
 						else
 						{
-							
+							//도둑을 범위 안으로 추가해야 함 
 						}
 					}
 					else

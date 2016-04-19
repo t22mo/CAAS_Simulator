@@ -52,7 +52,7 @@ public class TargetObject {
 		sRenderer.setColor(Color.RED);
 		sRenderer.circle((float)pos.x,(float)pos.y, 15);
 	}
-	public int checkInRange(ArrayList<CameraNode> arr)
+	public int checkInRange(ArrayList<CameraNode> arr) //카메라 노드 범위 내에 있는지 확인
 	{
 		double max=-99999;
 		int sel=-1;
@@ -73,13 +73,13 @@ public class TargetObject {
 				}
 			}
 		}		
-		return sel;
+		return sel; //있으면 카메라 노드 인덱스 리턴. 없으면 -1
 	}
-	public double getDistance(Vector2D a,Vector2D b)
+	public double getDistance(Vector2D a,Vector2D b) //거리 계산
 	{
 		return Math.sqrt( Math.pow((a.x-b.x),2) + Math.pow((a.y-b.y),2) );
 	}
-	public double calcAngle(Vector2D a,Vector2D b)
+	public double calcAngle(Vector2D a,Vector2D b) //각도 계산. (1,0)벡터 기준에서의 각도
 	{
 		double theta;
 		Vector2D diff = new Vector2D(b.x-a.x, b.y-a.y);
@@ -95,7 +95,7 @@ public class TargetObject {
 		
 		return theta;
 	}
-	public boolean isInRange(double start,double offset,double target)
+	public boolean isInRange(double start,double offset,double target) //시작, 시작+offset 범위 이내에 목표 각도가 포함되는지 
 	{
 		if(start<0)
 			start+=360;
@@ -115,9 +115,9 @@ public class TargetObject {
 		
 		return false;
 	}
-	public double getIntersectingArea( CameraNode target, int n, double len)
+	public double getIntersectingArea( CameraNode target, int n, double len) //임의의 카메라 노드 시야와 도둑의 예상 이동 범위와의 겹치는 면적 근사값. target:카메라 노드 인스턴스, n: 분할횟수, len:도둑의 예상 거리
 	{
-		double area = 0, sq3 = Math.sqrt(3);
+		double area = 0, sq3 = Math.sqrt(3); //도둑의 예상 이동 각도는 60도로 고정. 계산의 편의를 위해 루트3을 미리 계산해둠
 		ArrayList<Vector2D> vList = new ArrayList<Vector2D>();
 		boolean[] chk = new boolean[6];
 		

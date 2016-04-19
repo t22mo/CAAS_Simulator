@@ -57,6 +57,7 @@ public class CameraNode {
 			blockList.add(new BlockData( (new Random().nextInt(4)+1 )));
 		}
 		
+		
 	}
 	
 	//Shaperenderer 사용
