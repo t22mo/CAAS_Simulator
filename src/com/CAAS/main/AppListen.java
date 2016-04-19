@@ -4,6 +4,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 
+import com.CAAS.network.Global;
+import com.CAAS.network.TCPServer;
+import io.vertx.core.Vertx;
+import io.vertx.core.spi.metrics.TCPMetrics;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -34,10 +38,15 @@ public class AppListen implements ApplicationListener {
 	SimulatorState			state;
 	BlockToggleButton		blockToggleBtn;
 	StartButton				startBtn;
-	
+	Global global = Global.getInstance();
+	Vertx vertx;
 	@Override
 	public void create() {
-		
+		// TCPServer instantiate
+		vertx = Vertx.vertx();
+		TCPServer server = new TCPServer(vertx);
+		server.createServer();
+
 		//load textures
 		ArrayList<Texture> bToggleTexList = new ArrayList<Texture>();
 		bToggleTexList.add(new Texture(Gdx.files.internal("res/img/blocktoggle_0.png")));
@@ -52,7 +61,7 @@ public class AppListen implements ApplicationListener {
 		//read json file
 		JSONObject inputJson = readFile();
 		JSONArray nodeListJson = (JSONArray) inputJson.get("nodelist");
-		
+
 		//instantiate node info from json
 		camList = CameraNode.getInstance();
 		for(int i=0 ; i<nodeListJson.size() ; i++)
@@ -65,11 +74,13 @@ public class AppListen implements ApplicationListener {
 			double	vAngle	= (double)(long)nodeJson.get("view_angle");
 			double	vDis	= (double)(long)nodeJson.get("view_distance");
 			int		id		= (int)(long)	nodeJson.get("id");
+			int port = (int)(long)nodeJson.get("port");
 
-			
-			camList.add(new CameraNode(x,y,v_x,v_y,vAngle,vDis,id));
+			// 현재 이용가능한 카메라 노드 ID 리스트 생성
+			global.availableCameraNodeID.push(id);
+			camList.add(new CameraNode(x,y,v_x,v_y,vAngle,vDis,id,port));
 		}
-		
+		global.camList = camList;
 		//instantiate
 		state			= new SimulatorState();
 		targetObj		= TargetObject.getInstance();

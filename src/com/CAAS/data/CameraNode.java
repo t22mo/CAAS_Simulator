@@ -1,6 +1,8 @@
 package com.CAAS.data;
 
 import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Random;
 
 import com.badlogic.gdx.graphics.Color;
@@ -8,22 +10,27 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import io.vertx.core.Vertx;
+import io.vertx.core.net.NetClient;
+import io.vertx.core.net.NetClientOptions;
+import io.vertx.core.net.NetSocket;
+
 
 public class CameraNode {
 	public static ArrayList<CameraNode> instance = new ArrayList<CameraNode>();
-	
-	Vector2D pos; //위치 
-	Vector2D dirNormal; //방향벡터
-	double vAngle; //시야각
-	double vDis; //시야 범위
-	int radius = 5; //반지름
-	double sAngle; //시야 환산
-	boolean active;
-	int id; //식별자
+	public Vector2D pos; //위치
+	public Vector2D dirNormal; //방향벡터
+	public double vAngle; //시야각
+	public double vDis; //시야 범위
+	public int radius = 5; //반지름
+	public double sAngle; //시야 환산
+	public boolean active;
+	public int id; //식별자
+	public int port; // 포트
 	Texture nodeTexture;
 	Texture visionTexture;
 	ArrayList<BlockData> blockList;
-	
+
 	
 	public static final float[] r = {0.7f, 0.933f, 0.172f , 0.191f};
 	public static final float[] g = {0.7f, 0.3f	 , 0.465f , 0.980f};
@@ -35,7 +42,7 @@ public class CameraNode {
 		return instance;
 	}	
 	
-	public CameraNode(double x,double y,double v_x, double v_y,double vAngle,double vDis,int id)
+	public CameraNode(double x,double y,double v_x, double v_y,double vAngle,double vDis,int id, int port)
 	{
 		pos 		= new Vector2D(x, y);
 		dirNormal 	= new Vector2D(v_x,v_y);	
@@ -43,7 +50,7 @@ public class CameraNode {
 		this.vAngle	= vAngle;
 		this.vDis	= vDis;
 		this.id		= id;
-		
+		this.port = port;
 		blockList = new ArrayList<BlockData>();
 		
 		active = false;
@@ -116,5 +123,5 @@ public class CameraNode {
 	//	System.out.println(sAngle +" "+(sAngle+vAngle));
 	
 	}
-	
+
 }
