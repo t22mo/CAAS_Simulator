@@ -1,10 +1,11 @@
-package com.CAAS.network;
+package com.CAAS.network.protocol;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.MessageCodec;
 import io.vertx.core.json.JsonObject;
 
 /**
+ * HashChain EventBus Custom Message Codec
  * Created by tokirin on 2016-04-18.
  */
 

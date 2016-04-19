@@ -1,11 +1,10 @@
-package com.CAAS.network;
+package com.CAAS.network.model;
 
 import com.CAAS.data.CameraNode;
 import io.vertx.core.net.NetSocket;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Stack;
 
 /**

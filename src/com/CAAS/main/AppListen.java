@@ -4,10 +4,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 
-import com.CAAS.network.Global;
-import com.CAAS.network.TCPServer;
+import com.CAAS.network.model.Global;
+import com.CAAS.network.protocol.ChainMessageProtocol;
+import com.CAAS.network.protocol.HashChainCodec;
 import io.vertx.core.Vertx;
-import io.vertx.core.spi.metrics.TCPMetrics;
+import io.vertx.core.eventbus.DeliveryOptions;
+import io.vertx.core.eventbus.EventBus;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -38,14 +40,18 @@ public class AppListen implements ApplicationListener {
 	SimulatorState			state;
 	BlockToggleButton		blockToggleBtn;
 	StartButton				startBtn;
+
+	//Networking Variable
 	Global global = Global.getInstance();
 	Vertx vertx;
+	EventBus eventBus;
 	@Override
 	public void create() {
-		// TCPServer instantiate
+		// SimulatorManager instantiate
 		vertx = Vertx.vertx();
-		TCPServer server = new TCPServer(vertx);
-		server.createServer();
+		eventBus = vertx.eventBus();
+		eventBus.registerDefaultCodec(ChainMessageProtocol.class, new HashChainCodec());
+		vertx.deployVerticle("com.CAAS.network.verticle.SimulatorManager");
 
 		//load textures
 		ArrayList<Texture> bToggleTexList = new ArrayList<Texture>();
@@ -191,6 +197,7 @@ public class AppListen implements ApplicationListener {
 		}
 		return null;
 	}
+
 	public void inputUpdate()
 	{
 		//Direction key input  
@@ -217,6 +224,16 @@ public class AppListen implements ApplicationListener {
 		//Button clicks
 		blockToggleBtn.inputUpdate();
 		startBtn.inputUpdate();
+
+		if(Gdx.input.isKeyPressed(Input.Keys.ENTER)){
+		/*
+		 * Block 생성 테스트
+		 */
+			HashChainCodec myCodec = new HashChainCodec();
+			DeliveryOptions options = new DeliveryOptions()
+					.setCodecName(myCodec.name());
+			eventBus.send("test_push_data_block", new ChainMessageProtocol("asdf"),options);
+		}
 	}
 	
 }
