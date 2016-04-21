@@ -13,7 +13,7 @@ import java.util.Stack;
 public class Global {
     private static Global instance;
     public static Stack<Integer> availableCameraNodeID = new Stack<Integer>();
-    public static ArrayList<CameraNode> camList;
+    public static ArrayList<CameraNode> camList; //
     public static HashMap<Integer,NetSocket> socketList = new HashMap<Integer, NetSocket>();
 
     private Global(){}
