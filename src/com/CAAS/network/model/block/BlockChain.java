@@ -36,10 +36,10 @@ public class BlockChain {
 
     public static synchronized boolean pushBlock(Block block) throws NoSuchAlgorithmException {
         if(block.getHeader().blockHash.equals(getCurrentBlockHash())){
+            System.out.println("블록이 추가되었습니다 : " + block.getHeader().blockHash);
             blockChain.add(block);
             return true;
         }else{
-            System.out.println("블록해시가 일치하지 않습니다. 블록이 추가될수 없습니다.");
             return false;
         }
     }

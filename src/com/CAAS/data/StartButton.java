@@ -37,7 +37,7 @@ public class StartButton extends Button {
 					
 					if(SimulatorState.simulatorState == false)
 					{
-						if(TargetObject.getInstance().findInRangeNode ( CameraNode.getInstance() )!=-1)
+						if(TargetObject.getInstance(null).findInRangeNode ( CameraNode.getInstance() )!=-1)
 							SimulatorState.simulatorState = !SimulatorState.simulatorState;
 						else
 						{

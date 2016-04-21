@@ -26,17 +26,17 @@ public class TargetObject {
 	Vector2D		sightStart;
 	Vector2D		sightEnd;
 	boolean			traceLineEnabled;
-	Vertx			vertx;
 	EventBus		eventBus;
 
 	//공유 인스턴스
-	public static TargetObject instance = new TargetObject();
-	public static TargetObject getInstance()
+	public static TargetObject instance;
+	public static TargetObject getInstance(EventBus eventBus)
 	{
+		if(instance == null) instance = new TargetObject(eventBus);
 		return instance;
 	}
 
-	public TargetObject()
+	public TargetObject(EventBus eventBus)
 	{
 		pos			= new Vector2D(15, 15);
 		dirNormal	= new Vector2D(0,0);
@@ -48,11 +48,7 @@ public class TargetObject {
 		pixmap.setColor(Color.RED);
 		pixmap.fillCircle(20,20,19);
 		texture = new Texture(pixmap);
-
-		vertx = Vertx.vertx();
-		eventBus = vertx.eventBus();
-		eventBus.registerDefaultCodec(ChainMessageProtocol.class, new HashChainCodec());
-		vertx.deployVerticle("com.CAAS.network.verticle.SimulatorManager");
+		this.eventBus = eventBus;
 	}
 
 	public void update() {
