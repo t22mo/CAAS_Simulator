@@ -24,7 +24,8 @@ public class CameraNode {
 	public double vDis; //시야 범위
 	public int radius = 5; //반지름
 	public double sAngle; //시야 환산
-	public boolean active;
+	public boolean active; //활성화
+	public boolean inSight; //시야 범위 내 존재
 	public int id; //식별자
 	public int port; // 포트
 	Texture nodeTexture;
@@ -72,7 +73,7 @@ public class CameraNode {
 	{
 		
 		//시야 범위 
-		sRenderer.setColor(1.0f,1.0f,0.0f,0.5f);
+		sRenderer.setColor(1.0f* (inSight?0:1), 1.0f  ,0.0f, 0.4f + 0.3f * (active?1:0));
 		sRenderer.arc((float)pos.x, (float)pos.y, (float)vDis, (float)sAngle, (float)vAngle);
 		
 		//노드

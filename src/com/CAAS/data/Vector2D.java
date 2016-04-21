@@ -18,4 +18,8 @@ public class Vector2D {
 			y = y/l;
 		}
 	}
+	public Vector2D clone()
+	{
+		return new Vector2D(this.x,this.y);
+	}
 }

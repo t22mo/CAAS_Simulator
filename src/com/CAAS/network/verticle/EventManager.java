@@ -99,6 +99,30 @@ public class EventManager extends AbstractVerticle {
             }
         });
 
+        eventBus.consumer("location_info",message->{
+            int port = Integer.parseInt(message.headers().get("port"));
+            ChainMessageProtocol body = (ChainMessageProtocol) message.body();
+            NetSocket socket = global.socketList.get(port);
+            socket.write(body.encode());
+            System.out.println("location info : "+body.encode());
+        });
+
+        eventBus.consumer("activate_node",message->{
+            int port = Integer.parseInt(message.headers().get("port"));
+            ChainMessageProtocol body = (ChainMessageProtocol) message.body();
+            NetSocket socket = global.socketList.get(port);
+            socket.write(body.encode());
+            System.out.println("activate : "+body.encode());
+        });
+
+        eventBus.consumer("deactivate_node",message->{
+            int port = Integer.parseInt(message.headers().get("port"));
+            ChainMessageProtocol body = (ChainMessageProtocol) message.body();
+            NetSocket socket = global.socketList.get(port);
+            socket.write(body.encode());
+            System.out.println("deactivate : "+body.encode());
+        });
+
     }
 
     @Override

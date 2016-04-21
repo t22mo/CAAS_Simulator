@@ -30,8 +30,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 
 public class AppListen implements ApplicationListener {
 
-	float elapsedTime = 0;
-	
 	ArrayList<CameraNode>	camList;
 	TargetObject			targetObj; 
 	SpriteBatch				spriteBatch;
@@ -51,6 +49,16 @@ public class AppListen implements ApplicationListener {
 		vertx = Vertx.vertx();
 		eventBus = vertx.eventBus();
 		eventBus.registerDefaultCodec(ChainMessageProtocol.class, new HashChainCodec());
+
+		ChainMessageProtocol msg = new ChainMessageProtocol("message_type");
+		msg.put("key","value");
+
+		//-----
+		DeliveryOptions options = new DeliveryOptions()
+				.setCodecName("HashChainCodec")
+				.addHeader("port","1008");
+		eventBus.send("channel_name",msg,options);
+		//-----
 		vertx.deployVerticle("com.CAAS.network.verticle.SimulatorManager");
 
 		//load textures
@@ -80,7 +88,7 @@ public class AppListen implements ApplicationListener {
 			double	vAngle	= (double)(long)nodeJson.get("view_angle");
 			double	vDis	= (double)(long)nodeJson.get("view_distance");
 			int		id		= (int)(long)	nodeJson.get("id");
-			int port = (int)(long)nodeJson.get("port");
+			int		port	= (int)(long)	nodeJson.get("port");
 
 			// 현재 이용가능한 카메라 노드 ID 리스트 생성
 			global.availableCameraNodeID.push(id);
@@ -127,7 +135,7 @@ public class AppListen implements ApplicationListener {
 		//---------------------------------------
 		blockToggleBtn.draw(spriteBatch);
 		startBtn.draw(spriteBatch);
-		font.draw(spriteBatch,"Time: "+ String.format("%.1f",elapsedTime) , 5,595);	
+		font.draw(spriteBatch,"Time: "+ String.format("%.1f",SimulatorState.elapsedTime) , 5,595);
 		font.draw(spriteBatch,"X: "+ String.format("%.1f",targetObj.pos.x) +" Y:"+ String.format("%.1f",targetObj.pos.y), 5,580);	
 		
 		for(int i=0 ; i<camList.size() ; i++)
@@ -160,7 +168,7 @@ public class AppListen implements ApplicationListener {
 		Gdx.gl.glBlendFunc(GL11.GL_SRC_ALPHA,GL11.GL_ONE_MINUS_SRC_ALPHA);
 		
 		if(SimulatorState.simulatorState==true)
-			elapsedTime += Gdx.graphics.getDeltaTime();
+			SimulatorState.elapsedTime += Gdx.graphics.getDeltaTime();
 		
 		update();
 		draw();
