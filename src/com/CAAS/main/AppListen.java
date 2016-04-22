@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import com.CAAS.network.model.Global;
 import com.CAAS.network.protocol.ChainMessageProtocol;
 import com.CAAS.network.protocol.HashChainCodec;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
@@ -34,7 +36,7 @@ public class AppListen implements ApplicationListener {
 	TargetObject			targetObj; 
 	SpriteBatch				spriteBatch;
 	ShapeRenderer			sRenderer;
-	BitmapFont				font;
+	BitmapFont				font,largeFont;
 	SimulatorState			state;
 	BlockToggleButton		blockToggleBtn;
 	StartButton				startBtn;
@@ -43,6 +45,8 @@ public class AppListen implements ApplicationListener {
 	Global global = Global.getInstance();
 	Vertx vertx;
 	EventBus eventBus;
+	float realTime=0;
+
 	@Override
 	public void create() {
 		// SimulatorManager instantiate
@@ -93,7 +97,8 @@ public class AppListen implements ApplicationListener {
 		blockToggleBtn	= new BlockToggleButton(600, 540 , 100, 40, bToggleTexList );
 		startBtn		= new StartButton(600, 490, 100, 40, startTexList);
 		font			= new BitmapFont(Gdx.files.internal("res/font/mspgothic.fnt"),Gdx.files.internal("res/font/mspgothic.png"),false);
-	//	font.getData().setScale(1);
+		largeFont		= new BitmapFont(Gdx.files.internal("res/font/mspgothic.fnt"),Gdx.files.internal("res/font/mspgothic.png"),false);
+		largeFont.getData().setScale(2f);
 	}
 	
 	public void update()
@@ -127,7 +132,13 @@ public class AppListen implements ApplicationListener {
 		startBtn.draw(spriteBatch);
 		font.draw(spriteBatch,"Time: "+ String.format("%.1f",SimulatorState.elapsedTime) , 5,595);
 		font.draw(spriteBatch,"X: "+ String.format("%.1f",targetObj.pos.x) +" Y:"+ String.format("%.1f",targetObj.pos.y), 5,580);	
-		
+
+		if(TargetObject.getInstance(eventBus).inSight==true)
+		{
+			largeFont.setColor(1.0f,1.0f,1.0f,0.5f+0.5f*(float)Math.sin( (Math.PI/2) * (double)(realTime)*3 ));
+			largeFont.draw(spriteBatch,"Recording...",490,595);
+		}
+
 		for(int i=0 ; i<camList.size() ; i++)
 		{
 			camList.get(i).drawBlock(spriteBatch,font);
@@ -159,7 +170,8 @@ public class AppListen implements ApplicationListener {
 		
 		if(SimulatorState.simulatorState==true)
 			SimulatorState.elapsedTime += Gdx.graphics.getDeltaTime();
-		
+		realTime += Gdx.graphics.getDeltaTime();
+
 		update();
 		draw();
 	}

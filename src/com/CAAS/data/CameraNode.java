@@ -83,8 +83,16 @@ public class CameraNode {
 	public void draw(ShapeRenderer sRenderer)
 	{
 		
-		//시야 범위 
-		sRenderer.setColor(1.0f* (inSight?0:1), 1.0f  ,0.0f, 0.4f + 0.3f * (active?1:0));
+		//시야 범위
+		if(active==false)
+			sRenderer.setColor(0.7f, 0.7f, 0.7f, 0.4f);
+		else
+		{
+			if(inSight==true)
+				sRenderer.setColor(0.0f , 1.0f, 0.0f, 0.8f);
+			else
+				sRenderer.setColor(1.0f , 1.0f, 0.0f, 0.4f + 0.8f);
+		}
 		sRenderer.arc((float)pos.x, (float)pos.y, (float)vDis, (float)sAngle, (float)vAngle);
 		
 		//노드
