@@ -65,14 +65,14 @@ public class CameraNode {
 		//텍스쳐 정의
 		blockTex = new ArrayList<Texture>();
 		Pixmap pixmap;
-		pixmap = new Pixmap(100,40,Pixmap.Format.RGBA8888);
+		pixmap = new Pixmap(150,40,Pixmap.Format.RGBA8888);
 		pixmap.setColor( new Color(0.172f,0.465f,0.938f,0.9f) );
-		pixmap.fillRectangle(0,0,100,40);
+		pixmap.fillRectangle(0,0,150,40);
 		blockTex.add( new Texture(pixmap) );
 
-		pixmap = new Pixmap(100,40,Pixmap.Format.RGBA8888);
+		pixmap = new Pixmap(150,40,Pixmap.Format.RGBA8888);
 		pixmap.setColor(new Color(0.933f,0.3f,0.176f,0.9f));
-		pixmap.fillRectangle(0,0,100,40);
+		pixmap.fillRectangle(0,0,150,40);
 		blockTex.add( new Texture(pixmap) );
 
 
@@ -149,6 +149,15 @@ public class CameraNode {
 			type = -1;
 
 		blockList.add(new BlockData(type,hash,id));
+	}
+	public static int findPort(int port)
+	{
+		for(int i=0 ; i<instance.size() ; i++)
+		{
+			if(port == instance.get(i).port)
+				return i;
+		}
+		return -1;
 	}
 
 }

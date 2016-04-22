@@ -1,5 +1,6 @@
 package com.CAAS.network.verticle;
 
+import com.CAAS.data.CameraNode;
 import com.CAAS.network.model.Global;
 import com.CAAS.network.model.block.BlockChain;
 import com.CAAS.network.model.block.DataBlock;
@@ -30,6 +31,12 @@ public class EventManager extends AbstractVerticle {
         eventBus.consumer("push_route_block",message->{
             ChainMessageProtocol msg = (ChainMessageProtocol) message.body();
             RouteBlock block = new RouteBlock(msg.getData().getJsonObject("block"));
+            System.out.println("port: "+message.headers().get("port"));
+
+            int idx = CameraNode.findPort(Integer.parseInt(message.headers().get("port")));
+            if(idx!=-1)
+                CameraNode.getInstance().get(idx).addBlock(msg);
+
             try {
                 if(blockChain.pushBlock(block)){
                     int port = Integer.parseInt(message.headers().get("port"));
@@ -52,6 +59,11 @@ public class EventManager extends AbstractVerticle {
         eventBus.consumer("push_data_block",message->{
             ChainMessageProtocol msg = (ChainMessageProtocol) message.body();
             DataBlock block = new DataBlock(msg.getData().getJsonObject("block"));
+
+            int idx = CameraNode.findPort(Integer.parseInt(message.headers().get("port")));
+            if(idx!=-1)
+                CameraNode.getInstance().get(idx).addBlock(msg);
+
             try {
                 if(blockChain.pushBlock(block)) {
                     int port = Integer.parseInt(message.headers().get("port"));
@@ -104,7 +116,6 @@ public class EventManager extends AbstractVerticle {
             ChainMessageProtocol body = (ChainMessageProtocol) message.body();
             NetSocket socket = global.socketList.get(port);
             socket.write(body.encode());
-            System.out.println("location info : "+body.encode());
         });
 
         eventBus.consumer("activate_node",message->{
@@ -112,7 +123,6 @@ public class EventManager extends AbstractVerticle {
             ChainMessageProtocol body = (ChainMessageProtocol) message.body();
             NetSocket socket = global.socketList.get(port);
             socket.write(body.encode());
-            System.out.println("activate : "+body.encode());
         });
 
         eventBus.consumer("deactivate_node",message->{
@@ -120,7 +130,6 @@ public class EventManager extends AbstractVerticle {
             ChainMessageProtocol body = (ChainMessageProtocol) message.body();
             NetSocket socket = global.socketList.get(port);
             socket.write(body.encode());
-            System.out.println("deactivate : "+body.encode());
         });
 
     }

@@ -88,7 +88,6 @@ public class TargetObject {
 					if(SimulatorState.elapsedTime - prv>=1)
 					{
 						prv = SimulatorState.elapsedTime;
-						//TODO: send location info to "select"
 						ChainMessageProtocol msg = new ChainMessageProtocol("location_info");
 						msg.put("x",""+this.pos.x);
 						msg.put("y",""+this.pos.y);
@@ -109,7 +108,6 @@ public class TargetObject {
 
 	public void activateNode(ArrayList<CameraNode> arr, int idx) //idx노드 활성화
 	{
-		//TODO: Send activation message to "idx" node - 2
 		ChainMessageProtocol msg = new ChainMessageProtocol("activate_node");
 		msg.put("x",String.format("%.2f",this.pos.x));
 		msg.put("y",String.format("%.2f",this.pos.y));
