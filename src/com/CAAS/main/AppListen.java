@@ -140,7 +140,7 @@ public class AppListen implements ApplicationListener {
 		
 		for(int i=0 ; i<camList.size() ; i++)
 		{
-			camList.get(i).draw(spriteBatch,font);
+			camList.get(i).drawBlock(spriteBatch,font);
 		}
 		//---------------------------------------
 		spriteBatch.end();

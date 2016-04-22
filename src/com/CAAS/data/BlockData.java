@@ -2,15 +2,17 @@ package com.CAAS.data;
 
 public class BlockData {
 	
-	public static final int deviceInfo		= 1;
-	public static final int monitorBlock	= 2;
-	public static final int routeBlock		= 3;
-	public static final int deviceBlock		= 4;
+	public static final int routeBlock		= 1;
+	public static final int dataBlock		= 2;
 	
 	int type;
+	String hash;
+	int id;
 	
-	public BlockData(int type)
+	public BlockData(int type,String hash, int id)
 	{
 		this.type = type;
+		this.hash = hash;
+		this.id = id;
 	}
 }

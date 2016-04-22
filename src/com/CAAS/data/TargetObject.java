@@ -115,8 +115,8 @@ public class TargetObject {
 	{
 		//TODO: Send activation message to "idx" node - 2
 		ChainMessageProtocol msg = new ChainMessageProtocol("activate_node");
-		msg.put("x",""+this.pos.x);
-		msg.put("y",""+this.pos.y);
+		msg.put("x",String.format("%.2f",this.pos.x));
+		msg.put("y",String.format("%.2f",this.pos.y));
 		sendNetworkMessage("activate_node",arr.get(idx).port ,msg);
 
 		select = idx;
@@ -142,10 +142,10 @@ public class TargetObject {
 	{
 		//TODO: Send deactivation message to "select" node - 4
 		ChainMessageProtocol msg = new ChainMessageProtocol("deactivate_node");
-		msg.put("sx",""+sightStart.x);
-		msg.put("sy",""+sightStart.y);
-		msg.put("ex",""+this.pos.x);
-		msg.put("ey",""+this.pos.y);
+		msg.put("sx",String.format("%.2f",sightStart.x));
+		msg.put("sy",""+String.format("%.2f",sightStart.y));
+		msg.put("ex",""+String.format("%.2f",this.pos.x));
+		msg.put("ey",""+String.format("%.2f",this.pos.y));
 		sendNetworkMessage("deactivate_node",arr.get(select).port, msg);
 
 		inSight = false;

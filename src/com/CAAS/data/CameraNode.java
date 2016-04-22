@@ -5,7 +5,9 @@ import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Random;
 
+import com.CAAS.network.protocol.ChainMessageProtocol;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -31,12 +33,12 @@ public class CameraNode {
 	Texture nodeTexture;
 	Texture visionTexture;
 	ArrayList<BlockData> blockList;
-
+	ArrayList<Texture> blockTex;
 	
 	public static final float[] r = {0.7f, 0.933f, 0.172f , 0.191f};
 	public static final float[] g = {0.7f, 0.3f	 , 0.465f , 0.980f};
 	public static final float[] b = {0.7f, 0.176f, 0.938f , 0.566f};
-	public static final String[] blockTxt = {"Device info","Monitoring block","Route Block","Device Block"};
+	public static final String[] blockTxt = {"Route block","Data block","Route Block","Device Block"};
 	
 	public static ArrayList<CameraNode> getInstance()
 	{
@@ -57,15 +59,24 @@ public class CameraNode {
 		active = false;
 		
 		dirNormal.normalize();
-		
+
 		calcAngle();
-		
-		for(int i=0 ; i<5 ; i++)
-		{
-			blockList.add(new BlockData( (new Random().nextInt(4)+1 )));
-		}
-		
-		
+
+		//텍스쳐 정의
+		blockTex = new ArrayList<Texture>();
+		Pixmap pixmap;
+		pixmap = new Pixmap(100,40,Pixmap.Format.RGBA8888);
+		pixmap.setColor( new Color(0.172f,0.465f,0.938f,0.9f) );
+		pixmap.fillRectangle(0,0,100,40);
+		blockTex.add( new Texture(pixmap) );
+
+		pixmap = new Pixmap(100,40,Pixmap.Format.RGBA8888);
+		pixmap.setColor(new Color(0.933f,0.3f,0.176f,0.9f));
+		pixmap.fillRectangle(0,0,100,40);
+		blockTex.add( new Texture(pixmap) );
+
+
+
 	}
 	
 	//Shaperenderer 사용
@@ -80,23 +91,16 @@ public class CameraNode {
 		sRenderer.setColor(Color.BLUE);
 		sRenderer.circle((float)pos.x,(float)pos.y, radius);
 
-		//블록 표시 사각형
-		if(SimulatorState.blockToggle==true)
-		{
-			for(int i=0 ; i<blockList.size() ; i++)
-			{
-				BlockData block = blockList.get(i);
-				int t = block.type-1;
-				sRenderer.setColor(r[t],g[t],b[t],1);
-			
-				sRenderer.rect((float)pos.x+2, (float)pos.y+2+21*i, 110, 20);
-				
-			}
-		}
+
+
 	}
 	
 	//Spritebatch 사용
 	public void draw(SpriteBatch spriteBatch, BitmapFont font)
+	{
+
+	}
+	public void drawBlock(SpriteBatch spriteBatch, BitmapFont font)
 	{
 		if(SimulatorState.blockToggle==true)
 		{
@@ -104,7 +108,12 @@ public class CameraNode {
 			{
 				BlockData block = blockList.get(i);
 				int t = block.type-1;
-				font.draw(spriteBatch,blockTxt[t], (float)pos.x+3,(float)pos.y+18+21*i);	
+
+				spriteBatch.draw(blockTex.get(t),(float)pos.x + 2,(float)pos.y + 2 + i*42);
+
+				font.draw(spriteBatch,blockTxt[t], (float)pos.x+4,(float)pos.y+39+42*i);
+				font.draw(spriteBatch,"Hash: "+block.hash, (float)pos.x+4,(float)pos.y+25+42*i);
+				font.draw(spriteBatch,"ID: "+block.id, (float)pos.x+4,(float)pos.y+12+42*i);
 			}
 		}
 	}
@@ -116,13 +125,30 @@ public class CameraNode {
 			theta = Math.atan( dirNormal.y/dirNormal.x ) / (2*Math.PI) * (double)360  ;
 		else
 			theta = 90 + 90*(1 - dirNormal.y);
-		
+
 		if( dirNormal.x<0 )
 			theta+=180;
 		
 		sAngle = theta - vAngle/2;
 	//	System.out.println(sAngle +" "+(sAngle+vAngle));
 	
+	}
+	public void addBlock(ChainMessageProtocol msg)
+	{
+		int type;
+
+
+		String blockType = msg.getType();
+		String hash = msg.getData().getJsonObject("block").getJsonObject("header").getString("blockHash");
+		int id = msg.getData().getJsonObject("block").getJsonObject("header").getInteger("blockID");
+		if(blockType.equals("push_route_block"))
+			type = 1;
+		else if(blockType.equals("push_data_block"))
+			type = 2;
+		else
+			type = -1;
+
+		blockList.add(new BlockData(type,hash,id));
 	}
 
 }
