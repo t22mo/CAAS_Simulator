@@ -234,16 +234,6 @@ public class AppListen implements ApplicationListener {
 		//Button clicks
 		blockToggleBtn.inputUpdate();
 		startBtn.inputUpdate();
-
-		if(Gdx.input.isKeyPressed(Input.Keys.ENTER)){
-		/*
-		 * Block 생성 테스트
-		 */
-			HashChainCodec myCodec = new HashChainCodec();
-			DeliveryOptions options = new DeliveryOptions()
-					.setCodecName(myCodec.name());
-			eventBus.send("test_push_data_block", new ChainMessageProtocol("asdf"),options);
-		}
 	}
 	
 }

@@ -31,23 +31,15 @@ public class EventManager extends AbstractVerticle {
         eventBus.consumer("push_route_block",message->{
             ChainMessageProtocol msg = (ChainMessageProtocol) message.body();
             RouteBlock block = new RouteBlock(msg.getData().getJsonObject("block"));
-            System.out.println("port: "+message.headers().get("port"));
 
             int idx = CameraNode.findPort(Integer.parseInt(message.headers().get("port")));
-            if(idx!=-1)
+            if(idx!=-1) {
+                System.out.println(message.headers().get("port") + "포트 노드로부터 RouteBlock 수신");
                 CameraNode.getInstance().get(idx).addBlock(msg);
+            }
 
             try {
-                if(blockChain.pushBlock(block)){
-                    int port = Integer.parseInt(message.headers().get("port"));
-                    ChainMessageProtocol mail = new ChainMessageProtocol("push_route_block");
-                    mail.put("block",block.getObject());
-                    global.socketList.forEach((k,v)->{
-                        if(k != port){
-                            v.write(mail.encode());
-                        }
-                    });
-                }
+                blockChain.pushBlock(block);
             } catch (NoSuchAlgorithmException e) {
                 e.printStackTrace();
             }
@@ -59,53 +51,14 @@ public class EventManager extends AbstractVerticle {
         eventBus.consumer("push_data_block",message->{
             ChainMessageProtocol msg = (ChainMessageProtocol) message.body();
             DataBlock block = new DataBlock(msg.getData().getJsonObject("block"));
-
             int idx = CameraNode.findPort(Integer.parseInt(message.headers().get("port")));
-            if(idx!=-1)
+            if(idx!=-1) {
                 CameraNode.getInstance().get(idx).addBlock(msg);
-
-            try {
-                if(blockChain.pushBlock(block)) {
-                    int port = Integer.parseInt(message.headers().get("port"));
-                    ChainMessageProtocol mail = new ChainMessageProtocol("push_data_block");
-                    mail.put("block", block.getObject());
-                    global.socketList.forEach((k, v) -> {
-                        if (k != port) {
-                            v.write(mail.encode());
-                        }
-                    });
-                }
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            }
-        });
-
-        eventBus.consumer("test_push_data_block",message->{
-            JsonObject blockObj = new JsonObject();
-            JsonObject headerObj = new JsonObject();
-            JsonObject bodyObj = new JsonObject();
-            try {
-                headerObj.put("blockHash",blockChain.getCurrentBlockHash());
-                headerObj.put("blockID",blockChain.blockChain.size());
-                headerObj.put("blockType","data");
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
+                System.out.println(message.headers().get("port") + "포트 노드로부터 DataBlock 수신");
             }
 
-            blockObj.put("header",headerObj);
-            bodyObj.put("something","happened");
-            blockObj.put("body",bodyObj);
-
-            DataBlock dataBlock = new DataBlock(blockObj);
-
             try {
-                if(blockChain.pushBlock(dataBlock)){
-                    System.out.println(global.socketList.toString());
-                    NetSocket socket = global.socketList.get(1008);
-                    ChainMessageProtocol mail = new ChainMessageProtocol("push_data_block");
-                    mail.put("block", dataBlock.getObject());
-                    socket.write(mail.encode());
-                }
+                blockChain.pushBlock(block);
             } catch (NoSuchAlgorithmException e) {
                 e.printStackTrace();
             }
