@@ -49,16 +49,6 @@ public class AppListen implements ApplicationListener {
 		vertx = Vertx.vertx();
 		eventBus = vertx.eventBus();
 		eventBus.registerDefaultCodec(ChainMessageProtocol.class, new HashChainCodec());
-
-		ChainMessageProtocol msg = new ChainMessageProtocol("message_type");
-		msg.put("key","value");
-
-		//-----
-		DeliveryOptions options = new DeliveryOptions()
-				.setCodecName("HashChainCodec")
-				.addHeader("port","1008");
-		eventBus.send("channel_name",msg,options);
-		//-----
 		vertx.deployVerticle("com.CAAS.network.verticle.SimulatorManager");
 
 		//load textures
@@ -96,8 +86,8 @@ public class AppListen implements ApplicationListener {
 		}
 		global.camList = camList;
 		//instantiate
+		targetObj		= TargetObject.getInstance(eventBus);
 		state			= new SimulatorState();
-		targetObj		= TargetObject.getInstance();
 		spriteBatch		= new SpriteBatch();
 		sRenderer		= new ShapeRenderer();
 		blockToggleBtn	= new BlockToggleButton(600, 540 , 100, 40, bToggleTexList );

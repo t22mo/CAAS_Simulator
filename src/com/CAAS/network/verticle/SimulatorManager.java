@@ -11,6 +11,7 @@ import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.NetServer;
+import io.vertx.core.net.NetServerOptions;
 
 import java.util.EmptyStackException;
 
@@ -33,7 +34,8 @@ public class SimulatorManager extends AbstractVerticle {
 
 
     public void createServer() {
-        NetServer server = vertx.createNetServer();
+        NetServerOptions serverOptions = new NetServerOptions().setReceiveBufferSize(1024*1024).setSendBufferSize(1024*1024);
+        NetServer server = vertx.createNetServer(serverOptions);
         // 커넥션 요청 핸들러
         server.connectHandler(socket -> {
             int id = global.availableCameraNodeID.pop();
