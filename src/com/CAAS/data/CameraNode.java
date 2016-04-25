@@ -35,10 +35,10 @@ public class CameraNode {
 	ArrayList<BlockData> blockList;
 	ArrayList<Texture> blockTex;
 	
-	public static final float[] r = {0.7f, 0.933f, 0.172f , 0.191f};
-	public static final float[] g = {0.7f, 0.3f	 , 0.465f , 0.980f};
-	public static final float[] b = {0.7f, 0.176f, 0.938f , 0.566f};
-	public static final String[] blockTxt = {"Route block","Data block","Route Block","Device Block"};
+	public static final float[] r = {0.7f, 0.933f, 0.547f , 0.191f};
+	public static final float[] g = {0.7f, 0.3f	 , 0.547f , 0.980f};
+	public static final float[] b = {0.7f, 0.176f, 0.547f , 0.566f};
+	public static final String[] blockTxt = {"Route block","Data block","Information Block","Device Block"};
 	
 	public static ArrayList<CameraNode> getInstance()
 	{
@@ -65,17 +65,27 @@ public class CameraNode {
 		//텍스쳐 정의
 		blockTex = new ArrayList<Texture>();
 		Pixmap pixmap;
-		pixmap = new Pixmap(150,40,Pixmap.Format.RGBA8888);
-		pixmap.setColor( new Color(0.172f,0.465f,0.938f,0.9f) );
+		pixmap = new Pixmap(100,30,Pixmap.Format.RGBA8888);
+		pixmap.setColor( new Color(0.562f,0.750f,1.0f,0.8f) );
 		pixmap.fillRectangle(0,0,150,40);
 		blockTex.add( new Texture(pixmap) );
 
-		pixmap = new Pixmap(150,40,Pixmap.Format.RGBA8888);
-		pixmap.setColor(new Color(0.933f,0.3f,0.176f,0.9f));
+		pixmap = new Pixmap(100,30,Pixmap.Format.RGBA8888);
+		pixmap.setColor(new Color(1.0f,0.398f,0f ,0.8f) );
 		pixmap.fillRectangle(0,0,150,40);
 		blockTex.add( new Texture(pixmap) );
 
+		pixmap = new Pixmap(100,30,Pixmap.Format.RGBA8888);
+		pixmap.setColor(new Color(0.547f,0.547f,0.547f ,0.8f) );
+		pixmap.fillRectangle(0,0,150,40);
+		blockTex.add( new Texture(pixmap) );
 
+		blockList.add(new BlockData(3,"INFO_BLOCK",-1) );
+
+		for(int i=0 ; i<8 ; i++)
+		{
+			blockList.add(new BlockData(1+i%2,"abcdefghijklmnop",i));
+		}
 
 	}
 	
@@ -117,11 +127,10 @@ public class CameraNode {
 				BlockData block = blockList.get(i);
 				int t = block.type-1;
 
-				spriteBatch.draw(blockTex.get(t),(float)pos.x + 2,(float)pos.y + 2 + i*42);
+				spriteBatch.draw(blockTex.get(t),(float)pos.x + 2,(float)pos.y + 2 + i*31);
 
-				font.draw(spriteBatch,blockTxt[t], (float)pos.x+4,(float)pos.y+39+42*i);
-				font.draw(spriteBatch,"Hash: "+block.hash, (float)pos.x+4,(float)pos.y+25+42*i);
-				font.draw(spriteBatch,"ID: "+block.id, (float)pos.x+4,(float)pos.y+12+42*i);
+				font.draw(spriteBatch,blockTxt[t], (float)pos.x+4,(float)pos.y+29+31*i);
+				font.draw(spriteBatch,"Hash: "+block.hash.substring(0,10)+"...", (float)pos.x+4,(float)pos.y+15+31*i);
 			}
 		}
 	}

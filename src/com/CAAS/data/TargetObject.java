@@ -5,10 +5,12 @@ import java.util.ArrayList;
 import com.CAAS.network.model.Global;
 import com.CAAS.network.protocol.ChainMessageProtocol;
 import com.CAAS.network.protocol.HashChainCodec;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
@@ -25,6 +27,7 @@ public class TargetObject {
 
 	Vector2D		sightStart;
 	Vector2D		sightEnd;
+	Vector2D		prvLoc; //
 	boolean			traceLineEnabled;
 	EventBus		eventBus;
 
@@ -41,13 +44,11 @@ public class TargetObject {
 		pos			= new Vector2D(15, 15);
 		dirNormal	= new Vector2D(0,0);
 		speed		= 1;
-
+		prvLoc		= new Vector2D(-100,-100);
 		//원형 텍스쳐 생성
-		Pixmap pixmap;
-		pixmap = new Pixmap(40,40,Pixmap.Format.RGBA8888);
-		pixmap.setColor(Color.RED);
-		pixmap.fillCircle(20,20,19);
-		texture = new Texture(pixmap);
+
+		texture = new Texture(Gdx.files.internal("res/img/thief.png"));
+
 		this.eventBus = eventBus;
 	}
 
@@ -88,11 +89,16 @@ public class TargetObject {
 					if(SimulatorState.elapsedTime - prv>=1)
 					{
 						prv = SimulatorState.elapsedTime;
-						ChainMessageProtocol msg = new ChainMessageProtocol("location_info");
-						msg.put("x",""+this.pos.x);
-						msg.put("y",""+this.pos.y);
-						sendNetworkMessage("location_info",arr.get(select).port, msg);
 
+						if( new Vector2D(this.pos.x-prvLoc.x,this.pos.y-prvLoc.y).getLength()>20 ) //거리가 10이상 떨어지면
+						{
+							prvLoc.x = this.pos.x;
+							prvLoc.y = this.pos.y;
+							ChainMessageProtocol msg = new ChainMessageProtocol("location_info");
+							msg.put("x", "" + this.pos.x);
+							msg.put("y", "" + this.pos.y);
+							sendNetworkMessage("location_info", arr.get(select).port, msg);
+						}
 					}
 				}
 			}
@@ -148,7 +154,8 @@ public class TargetObject {
 		arr.get(select).active = false;
 		select = -1;
 		sightEnd = pos.clone();
-		int mx = selectMaximumArea(CameraNode.getInstance());
+
+		int mx = selectMaximumArea(CameraNode.getInstance() , new Vector2D(sightEnd.x-sightStart.x,sightEnd.y-sightStart.y).getLength());
 		if(mx!=-1)
 		{
 			activateNode(arr,mx);
@@ -164,9 +171,9 @@ public class TargetObject {
 	}
 	public void draw(ShapeRenderer sRenderer)
 	{
-		//spriteBatch.draw(texture,(float)pos.x,(float)pos.y);
-		sRenderer.setColor(Color.RED);
-		sRenderer.circle((float)pos.x,(float)pos.y, 15);
+
+		/*sRenderer.setColor(Color.RED);
+		sRenderer.circle((float)pos.x,(float)pos.y, 15);*/
 		if(traceLineEnabled == true)
 		{
 			double sq3 = Math.sqrt(3);
@@ -179,6 +186,10 @@ public class TargetObject {
 			sRenderer.rectLine( (float)sightEnd.x, (float)sightEnd.y, (float)(sightEnd.x + 15*r.x), (float)(sightEnd.y + 15*r.y),2 );
 			sRenderer.rectLine( (float)sightEnd.x, (float)sightEnd.y, (float)(sightEnd.x + 15*l.x), (float)(sightEnd.y + 15*l.y),2 );
 		}
+	}
+	public void draw(SpriteBatch spriteBatch)
+	{
+		spriteBatch.draw(texture,(float)pos.x-12.5f,(float)pos.y-12.5f,25.0f,25.0f);
 	}
 	public int findInRangeNode(ArrayList<CameraNode> arr)
 	{
@@ -202,7 +213,7 @@ public class TargetObject {
 		}
 		return false;
 	}
-	public int selectMaximumArea(ArrayList<CameraNode> arr) //카메라 노드 범위 내에 있는지 확인
+	public int selectMaximumArea(ArrayList<CameraNode> arr,double len) //카메라 노드 범위 내에 있는지 확인
 	{
 		double max=-99999;
 		int sel=-1;
@@ -211,11 +222,25 @@ public class TargetObject {
 		{
 			CameraNode cn = arr.get(i);
 
-			double area = getIntersectingArea(cn, 20, 200);
+			double area = getIntersectingArea(cn, 20, new Vector2D(sightEnd.x-sightStart.x,sightEnd.y-sightStart.y), 200, 60);
 			if(max<area && area>0)
 			{
 				max = area;
 				sel = i;
+			}
+		}
+		if(sel==-1)
+		{
+			for(int i=0 ; i<arr.size() ; i++)
+			{
+				CameraNode cn = arr.get(i);
+
+				double area = getIntersectingArea(cn, 20, new Vector2D(sightEnd.x-sightStart.x,sightEnd.y-sightStart.y), 300, 90);
+				if(max<area && area>0)
+				{
+					max = area;
+					sel = i;
+				}
 			}
 		}
 		return sel; //있으면 카메라 노드 인덱스 리턴. 없으면 -1
@@ -260,15 +285,16 @@ public class TargetObject {
 		
 		return false;
 	}
-	public double getIntersectingArea( CameraNode target, int n, double len) //임의의 카메라 노드 시야와 도둑의 예상 이동 범위와의 겹치는 면적 근사값. target:카메라 노드 인스턴스, n: 분할횟수, len:도둑의 예상 거리
+	public double getIntersectingArea( CameraNode target, int n, Vector2D normal, double len, double angle) //임의의 카메라 노드 시야와 도둑의 예상 이동 범위와의 겹치는 면적 근사값. target:카메라 노드 인스턴스, n: 분할횟수, len:도둑의 예상 거리
 	{
-		double area = 0, sq3 = Math.sqrt(3); //도둑의 예상 이동 각도는 60도로 고정. 계산의 편의를 위해 루트3을 미리 계산해둠
+		double area = 0, tanTheta = Math.tan(angle/2/360*2*Math.PI); //도둑의 예상 이동 각도는 60도로 고정. 계산의 편의를 위해 루트3을 미리 계산해둠
 		ArrayList<Vector2D> vList = new ArrayList<Vector2D>();
 		boolean[] chk = new boolean[6];
 		
-		if(dirNormal.x==0 && dirNormal.y==0)
+		if(normal.x==0 && normal.y==0)
 			return -1;
-		
+		normal.normalize();
+
 		for(int i=0 ; i<6 ; i++)
 			vList.add(new Vector2D(0,0));
 		vList.get(1).x = vList.get(3).x = vList.get(5).x = this.pos.x;
@@ -279,24 +305,24 @@ public class TargetObject {
 			vList.get(0).x = vList.get(1).x;
 			vList.get(0).y = vList.get(1).y;
 			
-			vList.get(1).x += (len / (double)n) * this.dirNormal.x;
-			vList.get(1).y += (len / (double)n) * this.dirNormal.y;
+			vList.get(1).x += (len / (double)n) * normal.x;
+			vList.get(1).y += (len / (double)n) * normal.y;
 			
 			vList.get(2).x = vList.get(3).x;  
 			vList.get(2).y = vList.get(3).y; 
 			
-			vList.get(3).x += ((len / sq3) / (double)n) * this.dirNormal.y;
-			vList.get(3).x += (len / (double)n) * this.dirNormal.x;
-			vList.get(3).y -= ((len / sq3) / (double)n) * this.dirNormal.x;
-			vList.get(3).y += (len / (double)n) * this.dirNormal.y;
+			vList.get(3).x += ((len * tanTheta) / (double)n) * normal.y;
+			vList.get(3).x += (len / (double)n) * normal.x;
+			vList.get(3).y -= ((len * tanTheta) / (double)n) * normal.x;
+			vList.get(3).y += (len / (double)n) * normal.y;
 			
 			vList.get(4).x = vList.get(5).x;
 			vList.get(4).y = vList.get(5).y;
 			
-			vList.get(5).x -= ((len / sq3) / (double)n) * this.dirNormal.y;
-			vList.get(5).x += (len / (double)n) * this.dirNormal.x;
-			vList.get(5).y += ((len / sq3) / (double)n) * this.dirNormal.x;			
-			vList.get(5).y += (len / (double)n) * this.dirNormal.y;
+			vList.get(5).x -= ((len * tanTheta) / (double)n) * normal.y;
+			vList.get(5).x += (len / (double)n) * normal.x;
+			vList.get(5).y += ((len * tanTheta) / (double)n) * normal.x;
+			vList.get(5).y += (len / (double)n) * normal.y;
 			
 			for(int j=0 ; j<6 ; j++)
 			{
@@ -306,12 +332,25 @@ public class TargetObject {
 					chk[j] = false;
 			}
 
+			if(chk[0]==true && chk[1]==true)
+				area+=(len/(double)n) * 5;
 
 			if( (chk[0]?1:0) + (chk[1]?1:0) + (chk[2]?1:0) + (chk[3]?1:0) >=3 )
-				area+= Math.pow(len,2) * (2*i-1) / ( 2*sq3*Math.pow(n, 2) );
+				area+= Math.pow(len,2) * (2*i-1) * tanTheta / ( 2*Math.pow(n, 2) );
 
 			if( (chk[0]?1:0) + (chk[1]?1:0) + (chk[4]?1:0) + (chk[5]?1:0) >=3 )
-				area+= Math.pow(len,2) * (2*i-1) / ( 2*sq3*Math.pow(n, 2) );
+				area+= Math.pow(len,2) * (2*i-1) * tanTheta / ( 2*Math.pow(n, 2) );
+		}
+		if(area>0)
+		{
+			Vector2D tVector = new Vector2D(target.pos.x-this.pos.x,target.pos.y-this.pos.y);
+			double cosTheta =  (normal.x * tVector.x + normal.y * tVector.y) / tVector.getLength();
+			cosTheta = Math.abs(cosTheta);
+			double v = tVector.getLength();
+			double k = cosTheta * v;
+			area/=k;
+
+			System.out.println(target.id + " : " + cosTheta+", "+ v +", "+k);
 
 		}
 		return area;
