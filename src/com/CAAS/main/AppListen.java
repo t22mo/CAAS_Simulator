@@ -90,6 +90,7 @@ public class AppListen implements ApplicationListener {
 			global.availableCameraNodeID.push(id);
 			camList.add(new CameraNode(x,y,v_x,v_y,vAngle,vDis,id,port));
 		}
+		global.MAX_PORT_NUMBER = 1000 + camList.size();
 		global.camList = camList;
 		//instantiate
 		targetObj		= TargetObject.getInstance(eventBus);

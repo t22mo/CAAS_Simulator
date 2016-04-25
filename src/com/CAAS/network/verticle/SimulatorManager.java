@@ -50,6 +50,7 @@ public class SimulatorManager extends AbstractVerticle {
                 msg.put("vAngle",camNode.vAngle);
                 msg.put("vDis",camNode.vDis);
                 msg.put("port",camNode.port);
+                msg.put("max_port_number", global.MAX_PORT_NUMBER);
                 socket.write(msg.encode());
 
                 // 전역 socket 리스트에 추가
