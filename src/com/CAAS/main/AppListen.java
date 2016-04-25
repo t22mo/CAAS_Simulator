@@ -65,6 +65,8 @@ public class AppListen implements ApplicationListener {
 		ArrayList<Texture> startTexList = new ArrayList<Texture>();
 		startTexList.add(new Texture(Gdx.files.internal("res/img/start_0.png")));
 		startTexList.add(new Texture(Gdx.files.internal("res/img/start_1.png")));
+
+
 		
 		//read json file
 		JSONObject inputJson = readFile();
@@ -128,6 +130,8 @@ public class AppListen implements ApplicationListener {
 		//text, texture rendering
 		spriteBatch.begin();
 		//---------------------------------------
+
+		targetObj.draw(spriteBatch);
 		blockToggleBtn.draw(spriteBatch);
 		startBtn.draw(spriteBatch);
 		font.draw(spriteBatch,"Time: "+ String.format("%.1f",SimulatorState.elapsedTime) , 5,595);
