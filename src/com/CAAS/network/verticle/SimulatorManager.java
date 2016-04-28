@@ -55,7 +55,7 @@ public class SimulatorManager extends AbstractVerticle {
 
                 // 전역 socket 리스트에 추가
                 global.socketList.put(camNode.port,socket);
-                System.out.println("클라이언트 (ID : " + camNode.id + ")가 연결 되었습니다.");
+                System.out.println("클라이언트 (ID : " + camNode.id + ")가 연결 되었습니다.";
             }catch(EmptyStackException e){
                 // 커넥션 풀 다찼으므로 거부
                 ChainMessageProtocol msg = new ChainMessageProtocol("simulator_connection_refuse");

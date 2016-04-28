@@ -82,11 +82,11 @@ public class CameraNode {
 
 		blockList.add(new BlockData(3,"INFO_BLOCK",-1) );
 
-		for(int i=0 ; i<8 ; i++)
+	/*	String[] h = {"e4503b3d0c47242d7a4f638c0f365755715440cf","fb9cb6cfb47c4779a10bd48a77a5bc59f2c6301f","a5ba2da44e19706c26a284f2d39707d5dc77572b","ed1b8d80793e70c0608e8a8508a8dd80f6aa56f9","ba04d15f253b24d64c687936ccc5d92299409a18","8d7dbf43ce17daa110065deedb22e227e3e43cb8"};
+		for(int i=0 ; i<6 ; i++)
 		{
-			blockList.add(new BlockData(1+i%2,"abcdefghijklmnop",i));
-		}
-
+			blockList.add(new BlockData(1+i%2,h[i],i+1));
+		}*/
 	}
 	
 	//Shaperenderer 사용
@@ -108,9 +108,6 @@ public class CameraNode {
 		//노드
 		sRenderer.setColor(Color.BLUE);
 		sRenderer.circle((float)pos.x,(float)pos.y, radius);
-
-
-
 	}
 	
 	//Spritebatch 사용
