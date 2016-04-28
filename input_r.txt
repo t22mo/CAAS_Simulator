@@ -1,0 +1,17 @@
+{
+	"nodelist" : [ 
+		{"id":1,"x":60,"y":60,"view_x":-1,"view_y":-1,"view_angle":90,"view_distance":60, "port": 1001},
+		{"id":2,"x":300,"y":60,"view_x":-1,"view_y":1,"view_angle":90,"view_distance":180, "port": 1002},
+		{"id":3,"x":540,"y":60,"view_x":0,"view_y":1,"view_angle":90,"view_distance":120, "port": 1003},
+		{"id":4,"x":180,"y":180,"view_x":1,"view_y":1,"view_angle":90,"view_distance":120, "port": 1004},
+		{"id":5,"x":420,"y":180,"view_x":-1,"view_y":0,"view_angle":90,"view_distance":180, "port": 1005},
+		{"id":6,"x":60,"y":300,"view_x":1,"view_y":0,"view_angle":90,"view_distance":180, "port": 1006},
+		{"id":7,"x":300,"y":300,"view_x":1,"view_y":1,"view_angle":90,"view_distance":120, , "port": 1007},
+		{"id":8,"x":540,"y":300,"view_x":-1,"view_y":1,"view_angle":90,"view_distance":180, , "port": 1008},
+		{"id":9,"x":180,"y":420,"view_x":1,"view_y":0,"view_angle":90,"view_distance":180, , "port": 1009},
+		{"id":10,"x":420,"y":420,"view_x":0,"view_y":1,"view_angle":90,"view_distance":120, , "port": 1010},
+		{"id":11,"x":60,"y":540,"view_x":1,"view_y":-1,"view_angle":90,"view_distance":120, , "port": 1011},
+		{"id":12,"x":300,"y":540,"view_x":0,"view_y":-1,"view_angle":90,"view_distance":60, , "port": 1012},
+		{"id":13,"x":540,"y":540,"view_x":-1,"view_y":0,"view_angle":90,"view_distance":120, , "port": 1013},
+	]
+}

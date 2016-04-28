@@ -1,0 +1,18 @@
+Data block
+
+"body" : {"trace":[{"x":"0.0","y":"1.0"},
+                 {"x":"0.1","y":"1.1"},
+                 {"x":"0.2","y":"1.2"}]}
+
+Route block
+
+"body" : {"sx":"0.0","sy":"1.0","ex":"0.2","ey":"1.2","dvx":"0.2","dvy":"0.2","dvlength":"0.28","eangle":60}
+
+//sx = Start x coordinate
+//sy = Start y coordinate
+//ex = End x coordinate
+//ey = End y coordinate
+//dvx = Delta Vector x coordinate
+//dvy = Delta Vector y coordinate
+//dvlength = Delta vector length
+//eangle = estimation angle
