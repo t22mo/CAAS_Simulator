@@ -155,7 +155,7 @@ public class TargetObject {
 		select = -1;
 		sightEnd = pos.clone();
 
-		int mx = selectMaximumArea(CameraNode.getInstance() , new Vector2D(sightEnd.x-sightStart.x,sightEnd.y-sightStart.y).getLength());
+		int mx = selectMaximumArea(CameraNode.getInstance());
 		if(mx!=-1)
 		{
 			activateNode(arr,mx);
@@ -213,7 +213,12 @@ public class TargetObject {
 		}
 		return false;
 	}
-	public int selectMaximumArea(ArrayList<CameraNode> arr,double len) //카메라 노드 범위 내에 있는지 확인
+
+	/*
+	arr		: 카메라 노드의 목록.
+	반환값	: 가장 넓은 범위가 겹치는 카메라 노드의 ArrayList상에서의 인덱스. 모두 겹치지 않는다면, -1.
+	 */
+	public int selectMaximumArea(ArrayList<CameraNode> arr) //모든 카메라 노드 중에서 도둑이 예상 이동범위와 가장 많이 겹치는 카메라를 찾음.
 	{
 		double max=-99999;
 		int sel=-1;
@@ -222,20 +227,20 @@ public class TargetObject {
 		{
 			CameraNode cn = arr.get(i);
 
-			double area = getIntersectingArea(cn, 20, new Vector2D(sightEnd.x-sightStart.x,sightEnd.y-sightStart.y), 200, 60);
+			double area = getIntersectingArea(cn, 20, new Vector2D(sightEnd.x-sightStart.x,sightEnd.y-sightStart.y), 200, 60); //분할횟수, 예상 이동 거리는 200, 각도는 60으로 고정함.
 			if(max<area && area>0)
 			{
 				max = area;
 				sel = i;
 			}
 		}
-		if(sel==-1)
+		if(sel==-1) //만일 위의 범위에서 겹치는 노드를 찾지 못하였다면,
 		{
 			for(int i=0 ; i<arr.size() ; i++)
 			{
 				CameraNode cn = arr.get(i);
 
-				double area = getIntersectingArea(cn, 20, new Vector2D(sightEnd.x-sightStart.x,sightEnd.y-sightStart.y), 300, 90);
+				double area = getIntersectingArea(cn, 20, new Vector2D(sightEnd.x-sightStart.x,sightEnd.y-sightStart.y), 300, 90); //거리를 300, 각도는 90으로 고정하여 재검사.
 				if(max<area && area>0)
 				{
 					max = area;
@@ -245,49 +250,19 @@ public class TargetObject {
 		}
 		return sel; //있으면 카메라 노드 인덱스 리턴. 없으면 -1
 	}
-	public double getDistance(Vector2D a,Vector2D b) //거리 계산
-	{
-		return Math.sqrt( Math.pow((a.x-b.x),2) + Math.pow((a.y-b.y),2) );
-	}
-	public double calcAngle(Vector2D a,Vector2D b) //각도 계산. (1,0)벡터 기준에서의 각도
-	{
-		double theta;
-		Vector2D diff = new Vector2D(b.x-a.x, b.y-a.y);
-		diff.normalize();		
-		
-		if(diff.x!=0)
-			theta = Math.atan( diff.y/diff.x ) / (2*Math.PI) * (double)360  ;
-		else
-			theta = 90 + 90*(1 - diff.y);
-		
-		if( diff.x<0 )
-			theta+=180;
-		
-		return theta;
-	}
-	public boolean isInRange(double start,double offset,double target) //시작, 시작+offset 범위 이내에 목표 각도가 포함되는지 
-	{
-		if(start<0)
-			start+=360;
-		
-		if(target<0)
-			target+=360;
-		
-		if(start<= target && target <= start+offset)
-			return true;
-		
-		if(start+offset>360)
-		{
-			target+=360;
-			if(start<= target && target <= start+offset)
-				return true;
-		}
-		
-		return false;
-	}
+
+
+	/*
+	target	: 대상 카메라 노드의 인스턴스
+	n		: 겹치는 면적 계산 시 분할 횟수
+	normal	: 도둑의 현재 이동 방향 벡터
+	len		: 도둑의 예상 이동 거리
+	angle	: 도둑의 예상 이동 범위 각도
+	반환값	: 도둑의 예상 이동 범위와 카메라 노드의 시야 범위중 겹치는 부분의 근사값.
+	 */
 	public double getIntersectingArea( CameraNode target, int n, Vector2D normal, double len, double angle) //임의의 카메라 노드 시야와 도둑의 예상 이동 범위와의 겹치는 면적 근사값. target:카메라 노드 인스턴스, n: 분할횟수, len:도둑의 예상 거리
 	{
-		double area = 0, tanTheta = Math.tan(angle/2/360*2*Math.PI); //도둑의 예상 이동 각도는 60도로 고정. 계산의 편의를 위해 루트3을 미리 계산해둠
+		double area = 0, tanTheta = Math.tan(angle/2/360*2*Math.PI);
 		ArrayList<Vector2D> vList = new ArrayList<Vector2D>();
 		boolean[] chk = new boolean[6];
 		
@@ -354,6 +329,46 @@ public class TargetObject {
 
 		}
 		return area;
+	}
+	public double getDistance(Vector2D a,Vector2D b) //거리 계산
+	{
+		return Math.sqrt( Math.pow((a.x-b.x),2) + Math.pow((a.y-b.y),2) );
+	}
+	public double calcAngle(Vector2D a,Vector2D b) //각도 계산. (1,0)벡터 기준에서의 각도
+	{
+		double theta;
+		Vector2D diff = new Vector2D(b.x-a.x, b.y-a.y);
+		diff.normalize();
+
+		if(diff.x!=0)
+			theta = Math.atan( diff.y/diff.x ) / (2*Math.PI) * (double)360  ;
+		else
+			theta = 90 + 90*(1 - diff.y);
+
+		if( diff.x<0 )
+			theta+=180;
+
+		return theta;
+	}
+	public boolean isInRange(double start,double offset,double target) //시작, 시작+offset 범위 이내에 목표 각도가 포함되는지
+	{
+		if(start<0)
+			start+=360;
+
+		if(target<0)
+			target+=360;
+
+		if(start<= target && target <= start+offset)
+			return true;
+
+		if(start+offset>360)
+		{
+			target+=360;
+			if(start<= target && target <= start+offset)
+				return true;
+		}
+
+		return false;
 	}
 }
 
