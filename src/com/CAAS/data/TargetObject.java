@@ -90,7 +90,7 @@ public class TargetObject {
 					{
 						prv = SimulatorState.elapsedTime;
 
-						if( new Vector2D(this.pos.x-prvLoc.x,this.pos.y-prvLoc.y).getLength()>20 ) //거리가 10이상 떨어지면
+						if( new Vector2D(this.pos.x-prvLoc.x,this.pos.y-prvLoc.y).getLength()>20 ) //거리가 10이상 움직이면
 						{
 							prvLoc.x = this.pos.x;
 							prvLoc.y = this.pos.y;
@@ -191,6 +191,10 @@ public class TargetObject {
 	{
 		spriteBatch.draw(texture,(float)pos.x-12.5f,(float)pos.y-12.5f,25.0f,25.0f);
 	}
+
+	/*도둑이 전체 카메라의 시야 범위중 속하는지 확인하는 메세드.
+	반환값: 시야범위에 속하는 노드의 인덱스. 존재하지 않을시, -1
+	 */
 	public int findInRangeNode(ArrayList<CameraNode> arr)
 	{
 		for(int i=0 ; i<arr.size() ; i++)
@@ -202,6 +206,8 @@ public class TargetObject {
 		}
 		return -1;
 	}
+
+	//도둑이 특정 카메라의 시야 범위 내에 속하는지 확인하는 메서드
 	public boolean checkInRange(CameraNode cn)
 	{
 		double dis = getDistance(cn.pos,this.pos);
