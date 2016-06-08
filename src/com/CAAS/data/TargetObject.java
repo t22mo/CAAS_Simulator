@@ -20,10 +20,13 @@ public class TargetObject {
 	public Vector2D	pos;
 	public Vector2D	dirNormal;
 	public double	speed;
+	public double	prvRouteTime;
 	public boolean	inSight; //임의의 노드 시야 내에 있는지에 대한 여부
 	Texture			texture;
 	int				select; //현재 시야범위 내에 속한 노드의 인덱스
 	float			prv = 0;
+	ArrayList<Vector2D> routeList;
+	public static int routeProg;
 
 	Vector2D		sightStart;
 	Vector2D		sightEnd;
@@ -48,7 +51,7 @@ public class TargetObject {
 		//원형 텍스쳐 생성
 
 		texture = new Texture(Gdx.files.internal("res/img/thief.png"));
-
+		routeList = new ArrayList<Vector2D>();
 		this.eventBus = eventBus;
 	}
 
@@ -56,7 +59,7 @@ public class TargetObject {
 		ArrayList<CameraNode> arr = CameraNode.getInstance();
 
 		//방향에 따라 이동
-		pos.x += speed * dirNormal.x;
+		/*pos.x += speed * dirNormal.x;
 		pos.y += speed * dirNormal.y;
 		
 		if(pos.x<15)
@@ -66,7 +69,20 @@ public class TargetObject {
 		if(pos.y<15)
 			pos.y = 15;
 		if(pos.y>585)
-			pos.y = 585;
+			pos.y = 585;*/
+
+		if(SimulatorState.elapsedTime - prvRouteTime>=(SimulatorState.routeDelay-0.0001))
+		{
+			if(routeProg<routeList.size()-1)
+			{
+				routeProg++;
+				this.pos.x = routeList.get(routeProg).x;
+				this.pos.y = routeList.get(routeProg).y;
+				System.out.println(this.pos.x+" "+this.pos.y);
+			}
+			prvRouteTime = SimulatorState.elapsedTime;
+		}
+
 
 		//노드 상태 업데이트
 		int sel = findInRangeNode(CameraNode.getInstance());
@@ -375,6 +391,17 @@ public class TargetObject {
 		}
 
 		return false;
+	}
+	public void addRoute(Vector2D pos)
+	{
+		routeList.add(translateRouteData(pos));
+	}
+
+	public Vector2D translateRouteData(Vector2D pos)
+	{
+		pos.x = (pos.x - 230.40) / 1034.3 * SimulatorState.mapWidth;
+		pos.y = (pos.y - 1636.26) / 554.09 * SimulatorState.mapHeight;
+		return pos;
 	}
 }
 

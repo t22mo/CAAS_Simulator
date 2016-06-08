@@ -12,7 +12,11 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Vector;
+import com.badlogic.gdx.scenes.scene2d.Event;
 import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.DeliveryOptions;
+import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.net.NetClient;
 import io.vertx.core.net.NetClientOptions;
 import io.vertx.core.net.NetSocket;
@@ -28,13 +32,24 @@ public class CameraNode {
 	public double sAngle; //시야 환산
 	public boolean active; //활성화
 	public boolean inSight; //시야 범위 내 존재
+
 	public int id; //식별자
 	public int port; // 포트
+
+	public boolean trackable = true; //실제 카메라 연동 여부
+	public String camIP; //실제 카메라 ip주소
+	public double limitAngle;
+
 	Texture nodeTexture;
 	Texture visionTexture;
 	ArrayList<BlockData> blockList;
 	ArrayList<Texture> blockTex;
-	
+	ArrayList<Vector2D> routeList;
+	public double prvRouteTime;
+	int routeProg;
+
+	public EventBus eventBus;
+
 	public static final float[] r = {0.7f, 0.933f, 0.547f , 0.191f};
 	public static final float[] g = {0.7f, 0.3f	 , 0.547f , 0.980f};
 	public static final float[] b = {0.7f, 0.176f, 0.547f , 0.566f};
@@ -45,7 +60,7 @@ public class CameraNode {
 		return instance;
 	}	
 	
-	public CameraNode(double x,double y,double v_x, double v_y,double vAngle,double vDis,int id, int port)
+	public CameraNode(double x,double y,double v_x, double v_y,double vAngle,double vDis,int id, int port, boolean trackable, EventBus eventBus)
 	{
 		pos 		= new Vector2D(x, y);
 		dirNormal 	= new Vector2D(v_x,v_y);	
@@ -54,8 +69,10 @@ public class CameraNode {
 		this.vDis	= vDis;
 		this.id		= id;
 		this.port = port;
+		this.trackable = trackable;
 		blockList = new ArrayList<BlockData>();
-		
+		routeList = new ArrayList<Vector2D>();
+		this.eventBus = eventBus;
 		active = false;
 		
 		dirNormal.normalize();
@@ -88,7 +105,32 @@ public class CameraNode {
 			blockList.add(new BlockData(1+i%2,h[i],i+1));
 		}*/
 	}
-	
+
+	public void update()
+	{
+		if(SimulatorState.elapsedTime - prvRouteTime>=(SimulatorState.routeDelay-0.0001))
+		{
+			if(routeProg<routeList.size()-1)
+			{
+
+
+				routeProg++;
+				this.pos.x = routeList.get(routeProg).x;
+				this.pos.y = routeList.get(routeProg).y;
+
+
+				this.dirNormal.x = routeList.get(routeProg).x - routeList.get(routeProg-1).x;
+				this.dirNormal.y = routeList.get(routeProg).y - routeList.get(routeProg-1).y;
+				this.dirNormal.normalize();
+				calcAngle();
+			}
+			prvRouteTime = SimulatorState.elapsedTime;
+		}
+		if(trackable == true)
+		{
+			//rotateViewVector();
+		}
+	}
 	//Shaperenderer 사용
 	public void draw(ShapeRenderer sRenderer)
 	{
@@ -173,5 +215,35 @@ public class CameraNode {
 		}
 		return -1;
 	}
+	public void addRoute(Vector2D pos)
+	{
+		routeList.add(translateRouteData(pos));
+	}
 
+	public Vector2D translateRouteData(Vector2D pos)
+	{
+		pos.x = (pos.x - 230.40) / 1034.3 * SimulatorState.mapWidth;
+		pos.y = (pos.y - 1636.26) / 554.09 * SimulatorState.mapHeight;
+		return pos;
+	}
+	public void sendRotationMessage()
+	{
+		ChainMessageProtocol msg = new ChainMessageProtocol("rotate_node");
+
+		DeliveryOptions options = new DeliveryOptions()
+				.setCodecName("HashChainCodec")
+				.addHeader("port",""+port);
+		eventBus.send("rotate_node",msg,options);
+	}
+	public void rotateViewVector(int delta)
+	{
+		if( (delta>0 && limitAngle+(1/delta)>0.25) || (delta<0 && limitAngle+(1/delta)<-0.25))
+		{
+			return;
+		}
+		limitAngle += (double)1/delta;
+		this.dirNormal = new Vector2D( Math.cos(2*Math.PI / delta)*this.dirNormal.x - Math.sin(2*Math.PI / delta)*this.dirNormal.y , Math.sin(2*Math.PI / delta)*this.dirNormal.x + Math.cos(2*Math.PI / delta)*this.dirNormal.y );
+		calcAngle();
+		sendRotationMessage();
+	}
 }

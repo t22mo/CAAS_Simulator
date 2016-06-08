@@ -29,13 +29,14 @@ public class StartButton extends Button {
 			if(touchFlag==false)
 			{
 				double x = Gdx.input.getX();
-				double y = 600-Gdx.input.getY();
+				double y = SimulatorState.mapHeight-Gdx.input.getY();
 				
 				if(isContaining(x, y))
 				{
+					SimulatorState.simulatorState = !SimulatorState.simulatorState;
 					touchFlag = true;
 					
-					if(SimulatorState.simulatorState == false)
+					/*if(SimulatorState.simulatorState == false)
 					{
 						if(TargetObject.getInstance(null).findInRangeNode ( CameraNode.getInstance() )!=-1)
 							SimulatorState.simulatorState = !SimulatorState.simulatorState;
@@ -45,8 +46,9 @@ public class StartButton extends Button {
 						}
 					}
 					else
-						SimulatorState.simulatorState = !SimulatorState.simulatorState;
+						SimulatorState.simulatorState = !SimulatorState.simulatorState;*/
 				}
+
 			}
 			
 		}

@@ -85,6 +85,12 @@ public class EventManager extends AbstractVerticle {
             socket.write(body.encode());
         });
 
+        eventBus.consumer("rotate_node",message->{
+            int port = Integer.parseInt(message.headers().get("port"));
+            ChainMessageProtocol body = (ChainMessageProtocol) message.body();
+            NetSocket socket = global.socketList.get(port);
+            socket.write(body.encode());
+        });
     }
 
     @Override

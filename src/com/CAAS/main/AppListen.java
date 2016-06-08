@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 
+import com.CAAS.data.*;
 import com.CAAS.network.model.Global;
 import com.CAAS.network.protocol.ChainMessageProtocol;
 import com.CAAS.network.protocol.HashChainCodec;
@@ -16,11 +17,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.lwjgl.opengl.GL11;
-import com.CAAS.data.BlockToggleButton;
-import com.CAAS.data.CameraNode;
-import com.CAAS.data.SimulatorState;
-import com.CAAS.data.StartButton;
-import com.CAAS.data.TargetObject;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -35,11 +31,15 @@ public class AppListen implements ApplicationListener {
 	ArrayList<CameraNode>	camList;
 	TargetObject			targetObj; 
 	SpriteBatch				spriteBatch;
+	SpriteBatch				spriteBatch2;
 	ShapeRenderer			sRenderer;
 	BitmapFont				font,largeFont;
 	SimulatorState			state;
 	BlockToggleButton		blockToggleBtn;
 	StartButton				startBtn;
+	StepButton				stepBtn;
+	Texture					backgroundTex;
+	Texture					dummy;
 
 	//Networking Variable
 	Global global = Global.getInstance();
@@ -66,6 +66,12 @@ public class AppListen implements ApplicationListener {
 		startTexList.add(new Texture(Gdx.files.internal("res/img/start_0.png")));
 		startTexList.add(new Texture(Gdx.files.internal("res/img/start_1.png")));
 
+		ArrayList<Texture> stepTexList = new ArrayList<Texture>();
+		stepTexList.add(new Texture(Gdx.files.internal("res/img/step_0.png")));
+		stepTexList.add(new Texture(Gdx.files.internal("res/img/step_1.png")));
+
+		backgroundTex = new Texture(Gdx.files.internal("res/img/map.png"));
+		dummy = new Texture(Gdx.files.internal("res/img/thief.png"));
 
 		
 		//read json file
@@ -96,60 +102,85 @@ public class AppListen implements ApplicationListener {
 		targetObj		= TargetObject.getInstance(eventBus);
 		state			= new SimulatorState();
 		spriteBatch		= new SpriteBatch();
+		spriteBatch2	= new SpriteBatch();
 		sRenderer		= new ShapeRenderer();
-		blockToggleBtn	= new BlockToggleButton(600, 540 , 100, 40, bToggleTexList );
-		startBtn		= new StartButton(600, 490, 100, 40, startTexList);
+		blockToggleBtn	= new BlockToggleButton(SimulatorState.mapWidth, SimulatorState.mapHeight - 60 , 100, 40, bToggleTexList );
+		startBtn		= new StartButton(SimulatorState.mapWidth, SimulatorState.mapHeight - 110, 100, 40, startTexList);
+		stepBtn			= new StepButton(SimulatorState.mapWidth, SimulatorState.mapHeight - 160, 100, 40, stepTexList);
 		font			= new BitmapFont(Gdx.files.internal("res/font/mspgothic.fnt"),Gdx.files.internal("res/font/mspgothic.png"),false);
 		largeFont		= new BitmapFont(Gdx.files.internal("res/font/mspgothic.fnt"),Gdx.files.internal("res/font/mspgothic.png"),false);
 		largeFont.getData().setScale(2f);
+
+		parseObjectRoute();
 	}
 	
 	public void update()
 	{
 		inputUpdate();
 		targetObj.update();
+		for(int i=0 ; i<camList.size() ; i++)
+		{
+			camList.get(i).update();
+		}
 	}
 	public void draw()
 	{
-		
+		spriteBatch2.enableBlending();
+		spriteBatch2.begin();
+		spriteBatch2.draw(backgroundTex,0,0,SimulatorState.mapWidth,SimulatorState.mapHeight);
+		spriteBatch2.end();
+
+
+		spriteBatch.begin();
+
+
 		// shape rendering
 		sRenderer.begin(ShapeType.Filled);
 		//---------------------------------------
-		
+
 		sRenderer.setColor(0,0,0,1);
-		sRenderer.rect(600, 0, 100,600);
-		
 		targetObj.draw(sRenderer);
 		for(int i=0 ; i<camList.size() ; i++)
 		{
 			camList.get(i).draw(sRenderer);
 		}
-		
-		//---------------------------------------
-		sRenderer.end();
-		
-		//text, texture rendering
-		spriteBatch.begin();
+
 		//---------------------------------------
 
-		targetObj.draw(spriteBatch);
+		
+		//text, texture rendering
+		//---------------------------------------
+
+
+		font.draw(spriteBatch,"Time: "+ String.format("%.1f",SimulatorState.elapsedTime) , 5,SimulatorState.mapHeight - 5);
+		font.draw(spriteBatch,"X: "+ String.format("%.1f",targetObj.pos.x) +" Y:"+ String.format("%.1f",targetObj.pos.y), 5,SimulatorState.mapHeight - 20);
+
+
 		blockToggleBtn.draw(spriteBatch);
 		startBtn.draw(spriteBatch);
-		font.draw(spriteBatch,"Time: "+ String.format("%.1f",SimulatorState.elapsedTime) , 5,595);
-		font.draw(spriteBatch,"X: "+ String.format("%.1f",targetObj.pos.x) +" Y:"+ String.format("%.1f",targetObj.pos.y), 5,580);	
+		stepBtn.draw(spriteBatch);
 
 		if(TargetObject.getInstance(eventBus).inSight==true)
 		{
 			largeFont.setColor(1.0f,1.0f,1.0f,0.5f+0.5f*(float)Math.sin( (Math.PI/2) * (double)(realTime)*3 ));
-			largeFont.draw(spriteBatch,"Recording...",490,595);
+			largeFont.draw(spriteBatch,"Recording...",SimulatorState.mapWidth - 110,SimulatorState.mapHeight - 5);
 		}
+
 
 		for(int i=0 ; i<camList.size() ; i++)
 		{
 			camList.get(i).drawBlock(spriteBatch,font);
 		}
+		targetObj.draw(spriteBatch);
+
+		spriteBatch.draw(dummy,0,0,0,0);
+
+
 		//---------------------------------------
+		sRenderer.end();
 		spriteBatch.end();
+
+
 	}
 
 	@Override
@@ -168,11 +199,12 @@ public class AppListen implements ApplicationListener {
 	@Override
 	public void render() {
 		// TODO Auto-generated method stub
+
 		Gdx.gl.glClearColor(1,1,1,1);
 		Gdx.gl.glClear(GL11.GL_COLOR_BUFFER_BIT );
 		Gdx.gl.glEnable(GL11.GL_BLEND);
 		Gdx.gl.glBlendFunc(GL11.GL_SRC_ALPHA,GL11.GL_ONE_MINUS_SRC_ALPHA);
-		
+
 		if(SimulatorState.simulatorState==true)
 			SimulatorState.elapsedTime += Gdx.graphics.getDeltaTime();
 		realTime += Gdx.graphics.getDeltaTime();
@@ -234,11 +266,46 @@ public class AppListen implements ApplicationListener {
 		{
 			targetObj.dirNormal.x+=1;
 		}
+		if(Gdx.input.isKeyPressed(Input.Keys.X))
+		{
+			camList.get(3).rotateViewVector(60);
+		}
+		if(Gdx.input.isKeyPressed(Input.Keys.Z))
+		{
+			camList.get(3).rotateViewVector(-60);
+		}
 		targetObj.dirNormal.normalize();		
 		
 		//Button clicks
 		blockToggleBtn.inputUpdate();
 		startBtn.inputUpdate();
+		stepBtn.inputUpdate();
+	}
+	public void parseObjectRoute()
+	{
+		try
+		{
+			File file = new File("./route.txt");
+			FileInputStream fis = new FileInputStream(file);
+			byte[] bContent = new byte[(int)file.length()];
+			fis.read(bContent);
+			fis.close();
+
+			String fileContent = new String( bContent  , "UTF-8");
+			String[] list = fileContent.split("\\\n");
+			for(int i=0 ; i<list.length ; i++)
+			{
+				String[] line = list[i].split("\\ ");
+				double x = Double.parseDouble(line[3]);
+				double y = Double.parseDouble(line[5]);
+				targetObj.addRoute(new Vector2D(x,y));
+				camList.get(0).addRoute(new Vector2D(x,y));
+			}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
 }
