@@ -12,9 +12,12 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import de.tudresden.sumo.cmd.Vehicle;
+import de.tudresden.ws.container.SumoPosition2D;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
+import it.polito.appeal.traci.SumoTraciConnection;
 
 public class TargetObject {
 	public Vector2D	pos;
@@ -55,7 +58,7 @@ public class TargetObject {
 		this.eventBus = eventBus;
 	}
 
-	public void update() {
+	public void update(SumoTraciConnection conn,String v_crm) {
 		ArrayList<CameraNode> arr = CameraNode.getInstance();
 
 		//방향에 따라 이동
@@ -71,7 +74,7 @@ public class TargetObject {
 		if(pos.y>585)
 			pos.y = 585;*/
 
-		if(SimulatorState.elapsedTime - prvRouteTime>=(SimulatorState.routeDelay-0.0001))
+	/*	if(SimulatorState.elapsedTime - prvRouteTime>=(SimulatorState.routeDelay-0.0001))
 		{
 			if(routeProg<routeList.size()-1)
 			{
@@ -81,6 +84,16 @@ public class TargetObject {
 				System.out.println(this.pos.x+" "+this.pos.y);
 			}
 			prvRouteTime = SimulatorState.elapsedTime;
+		}*/
+
+		try {
+			SumoPosition2D crm_pos = (SumoPosition2D) conn.do_job_get(Vehicle.getPosition(v_crm));
+			this.pos = translateRouteData(new Vector2D(crm_pos.x,crm_pos.y));
+			conn.do_timestep();
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
 		}
 
 

@@ -13,6 +13,9 @@ import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
+import it.polito.appeal.traci.SumoTraciConnection;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -47,6 +50,14 @@ public class AppListen implements ApplicationListener {
 	EventBus eventBus;
 	float realTime=0;
 
+	//SUMO variable
+	SumoTraciConnection conn;
+	private static final Logger log = LogManager.getLogger(AppListen.class);
+	static String sumo_bin = "D:/Program Files (x86)/DLR/Sumo/bin/sumo-gui.exe";
+	static String config_file = "C:/Users/T22mo/workspace/caas_trass/KU_CAAS_traas/net/osm.sumocfg";
+	static double step_length = 0.01;
+	String v_crm;
+
 	@Override
 	public void create() {
 		// SimulatorManager instantiate
@@ -73,7 +84,6 @@ public class AppListen implements ApplicationListener {
 		backgroundTex = new Texture(Gdx.files.internal("res/img/map.png"));
 		dummy = new Texture(Gdx.files.internal("res/img/thief.png"));
 
-		
 		//read json file
 		JSONObject inputJson = readFile();
 		JSONArray nodeListJson = (JSONArray) inputJson.get("nodelist");
@@ -91,10 +101,11 @@ public class AppListen implements ApplicationListener {
 			double	vDis	= (double)(long)nodeJson.get("view_distance");
 			int		id		= (int)(long)	nodeJson.get("id");
 			int		port	= (int)(long)	nodeJson.get("port");
+			boolean trackable = (boolean)	nodeJson.get("trackable");
 
 			// 현재 이용가능한 카메라 노드 ID 리스트 생성
 			global.availableCameraNodeID.push(id);
-			camList.add(new CameraNode(x,y,v_x,v_y,vAngle,vDis,id,port));
+			camList.add(new CameraNode(x,y,v_x,v_y,vAngle,vDis,id,port,trackable,eventBus));
 		}
 		global.MAX_PORT_NUMBER = 1000 + camList.size();
 		global.camList = camList;
@@ -111,13 +122,28 @@ public class AppListen implements ApplicationListener {
 		largeFont		= new BitmapFont(Gdx.files.internal("res/font/mspgothic.fnt"),Gdx.files.internal("res/font/mspgothic.png"),false);
 		largeFont.getData().setScale(2f);
 
-		parseObjectRoute();
+		//Start Sumo
+		conn = new SumoTraciConnection(sumo_bin, config_file);
+		conn.addOption("step-length", "0.1"); //timestep 100 ms
+		v_crm = "veh0";
+
+		try {
+			conn.runServer();
+
+			//load routes and initialize the simulation
+			conn.do_timestep();
+			conn.do_timestep();
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
 	public void update()
 	{
 		inputUpdate();
-		targetObj.update();
+		targetObj.update(conn,v_crm);
 		for(int i=0 ; i<camList.size() ; i++)
 		{
 			camList.get(i).update();
@@ -188,6 +214,7 @@ public class AppListen implements ApplicationListener {
 		// TODO Auto-generated method stub
 		spriteBatch.dispose();
 		sRenderer.dispose();
+		conn.close();
 	}
 
 	@Override
@@ -245,11 +272,17 @@ public class AppListen implements ApplicationListener {
 		return null;
 	}
 
-	public void inputUpdate()
-	{
+	public void inputUpdate() {
 		//Direction key input  
 		targetObj.dirNormal.x = 0;
 		targetObj.dirNormal.y = 0;
+
+		if (Gdx.input.isKeyPressed(Input.Keys.A))
+		{
+			System.out.println("x= " + Gdx.input.getX() + " y= " + Gdx.input.getY() );
+
+		}
+
 		if(Gdx.input.isKeyPressed(Input.Keys.UP ) )
 		{
 			targetObj.dirNormal.y+=1;

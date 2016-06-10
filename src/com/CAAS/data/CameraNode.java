@@ -28,7 +28,7 @@ public class CameraNode {
 	public Vector2D dirNormal; //방향벡터
 	public double vAngle; //시야각
 	public double vDis; //시야 범위
-	public int radius = 5; //반지름
+	public int radius = 7; //반지름
 	public double sAngle; //시야 환산
 	public boolean active; //활성화
 	public boolean inSight; //시야 범위 내 존재
@@ -148,7 +148,11 @@ public class CameraNode {
 		sRenderer.arc((float)pos.x, (float)pos.y, (float)vDis, (float)sAngle, (float)vAngle);
 		
 		//노드
-		sRenderer.setColor(Color.BLUE);
+		if(trackable==false)
+			sRenderer.setColor(Color.BLUE);
+		else
+			sRenderer.setColor(Color.RED);
+
 		sRenderer.circle((float)pos.x,(float)pos.y, radius);
 	}
 	
