@@ -299,13 +299,17 @@ public class AppListen implements ApplicationListener {
 		{
 			targetObj.dirNormal.x+=1;
 		}
+		if(Gdx.input.isKeyPressed(Input.Keys.C))
+		{
+			camList.get(3).rotateViewVector((double)-90);
+		}
 		if(Gdx.input.isKeyPressed(Input.Keys.X))
 		{
-			camList.get(3).rotateViewVector(60);
+			camList.get(3).rotateViewVector((double)0);
 		}
 		if(Gdx.input.isKeyPressed(Input.Keys.Z))
 		{
-			camList.get(3).rotateViewVector(-60);
+			camList.get(3).rotateViewVector((double)90);
 		}
 		targetObj.dirNormal.normalize();		
 		

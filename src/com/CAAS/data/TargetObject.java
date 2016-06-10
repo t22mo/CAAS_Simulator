@@ -87,9 +87,9 @@ public class TargetObject {
 		}*/
 
 		try {
-			SumoPosition2D crm_pos = (SumoPosition2D) conn.do_job_get(Vehicle.getPosition(v_crm));
-			this.pos = translateRouteData(new Vector2D(crm_pos.x,crm_pos.y));
-			conn.do_timestep();
+	//		SumoPosition2D crm_pos = (SumoPosition2D) conn.do_job_get(Vehicle.getPosition(v_crm));
+	//		this.pos = translateRouteData(new Vector2D(crm_pos.x,crm_pos.y));
+	//		conn.do_timestep();
 		}
 		catch(Exception e)
 		{

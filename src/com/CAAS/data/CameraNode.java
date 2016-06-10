@@ -38,7 +38,7 @@ public class CameraNode {
 
 	public boolean trackable = true; //실제 카메라 연동 여부
 	public String camIP; //실제 카메라 ip주소
-	public double limitAngle;
+	public double rState;
 
 	Texture nodeTexture;
 	Texture visionTexture;
@@ -74,6 +74,7 @@ public class CameraNode {
 		routeList = new ArrayList<Vector2D>();
 		this.eventBus = eventBus;
 		active = false;
+		rState = 0;
 		
 		dirNormal.normalize();
 
@@ -239,15 +240,25 @@ public class CameraNode {
 				.addHeader("port",""+port);
 		eventBus.send("rotate_node",msg,options);
 	}
-	public void rotateViewVector(int delta)
+	public void rotateViewVector(double delta)
 	{
-		if( (delta>0 && limitAngle+(1/delta)>0.25) || (delta<0 && limitAngle+(1/delta)<-0.25))
-		{
+		double temp;
+
+
+		if(rState==delta)
 			return;
-		}
-		limitAngle += (double)1/delta;
-		this.dirNormal = new Vector2D( Math.cos(2*Math.PI / delta)*this.dirNormal.x - Math.sin(2*Math.PI / delta)*this.dirNormal.y , Math.sin(2*Math.PI / delta)*this.dirNormal.x + Math.cos(2*Math.PI / delta)*this.dirNormal.y );
+		temp = delta;
+
+		delta = (delta-rState)/(double)360;
+
+
+		System.out.println(delta);
+
+
+		this.dirNormal = new Vector2D( Math.cos(2*Math.PI * delta)*this.dirNormal.x - Math.sin(2*Math.PI * delta)*this.dirNormal.y , Math.sin(2*Math.PI * delta)*this.dirNormal.x + Math.cos(2*Math.PI * delta)*this.dirNormal.y );
+
 		calcAngle();
-		sendRotationMessage();
+	//	sendRotationMessage();
+		rState = temp;
 	}
 }

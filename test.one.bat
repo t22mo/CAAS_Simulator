@@ -1,0 +1,1 @@
+start java -jar caas_hashchain_client.jar
