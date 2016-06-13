@@ -100,17 +100,6 @@ public class CameraNode {
 			blockList.add(new BlockData(1+i%2,h[i],i+1));
 		}*/
 
-		if(rotate==true) {
-			ChainMessageProtocol msg = new ChainMessageProtocol("rotate_info");
-			msg.put("temp1", "temp1");
-			msg.put("temp2", "temp2");
-
-			DeliveryOptions options = new DeliveryOptions()
-					.setCodecName("HashChainCodec")
-					.addHeader("port",""+port);
-			eventBus.send("rotate_info",msg,options);
-		}
-
 	}
 
 	public void update()

@@ -51,6 +51,9 @@ public class SimulatorManager extends AbstractVerticle {
                 msg.put("vDis",camNode.vDis);
                 msg.put("port",camNode.port);
                 msg.put("max_port_number", global.MAX_PORT_NUMBER);
+                msg.put("camera_node_rotatable",camNode.rotate);
+                msg.put("camera_node_ip",camNode.temp1);
+                msg.put("camera_node_port",camNode.temp2);
                 socket.write(msg.encode());
 
                 // 전역 socket 리스트에 추가
