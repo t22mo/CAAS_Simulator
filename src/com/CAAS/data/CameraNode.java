@@ -29,7 +29,7 @@ public class CameraNode {
 
 	public boolean rotate = true; //실제 카메라 연동 여부
 	public String camIP; //실제 카메라 ip주소
-	public String temp1,temp2;
+	public int camPort;
 	public double rState;
 
 	Texture nodeTexture;
@@ -52,7 +52,7 @@ public class CameraNode {
 		return instance;
 	}	
 	
-	public CameraNode(double x,double y,double v_x, double v_y,double vAngle,double vDis,int id, int port, boolean rotate, String temp1, String temp2, EventBus eventBus)
+	public CameraNode(double x,double y,double v_x, double v_y,double vAngle,double vDis,int id, int port, boolean rotate, String temp1, int temp2, EventBus eventBus)
 	{
 		pos 		= new Vector2D(x, y);
 		dirNormal 	= new Vector2D(v_x,v_y);	
@@ -65,8 +65,8 @@ public class CameraNode {
 		blockList = new ArrayList<BlockData>();
 		routeList = new ArrayList<Vector2D>();
 		this.eventBus = eventBus;
-		this.temp1 = temp1;
-		this.temp2 = temp2;
+		this.camIP = temp1;
+		this.camPort = temp2;
 		active = false;
 		rState = 0;
 		
@@ -226,9 +226,12 @@ public class CameraNode {
 		pos.y = (pos.y - 1636.26) / 554.09 * SimulatorState.mapHeight;
 		return pos;
 	}
-	public void sendRotationMessage()
+	public void sendRotationMessage(int angle)
 	{
 		ChainMessageProtocol msg = new ChainMessageProtocol("rotate_node");
+
+
+		msg.put("angle",angle);
 
 		DeliveryOptions options = new DeliveryOptions()
 				.setCodecName("HashChainCodec")
@@ -253,7 +256,7 @@ public class CameraNode {
 		this.dirNormal = new Vector2D( Math.cos(2*Math.PI * delta)*this.dirNormal.x - Math.sin(2*Math.PI * delta)*this.dirNormal.y , Math.sin(2*Math.PI * delta)*this.dirNormal.x + Math.cos(2*Math.PI * delta)*this.dirNormal.y );
 
 		calcAngle();
-	//	sendRotationMessage();
+		sendRotationMessage((int)temp+90);
 		rState = temp;
 	}
 }

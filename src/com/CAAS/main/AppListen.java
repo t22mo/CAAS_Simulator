@@ -103,7 +103,7 @@ public class AppListen implements ApplicationListener {
 			int		port	= (int)(long)	nodeJson.get("port");
 			boolean rotate = (boolean)	nodeJson.get("rotate");
 			String	temp1	= (String)		nodeJson.get("temp1");
-			String	temp2	= (String)		nodeJson.get("temp2");
+			int		temp2	= (int)(long)		nodeJson.get("temp2");
 
 			// 현재 이용가능한 카메라 노드 ID 리스트 생성
 			global.availableCameraNodeID.push(id);
@@ -303,15 +303,15 @@ public class AppListen implements ApplicationListener {
 		}
 		if(Gdx.input.isKeyPressed(Input.Keys.C))
 		{
-			camList.get(3).rotateViewVector((double)-90);
+			camList.get(2).rotateViewVector((double)-90);
 		}
 		if(Gdx.input.isKeyPressed(Input.Keys.X))
 		{
-			camList.get(3).rotateViewVector((double)0);
+			camList.get(2).rotateViewVector((double)0);
 		}
 		if(Gdx.input.isKeyPressed(Input.Keys.Z))
 		{
-			camList.get(3).rotateViewVector((double)90);
+			camList.get(2).rotateViewVector((double)90);
 		}
 		targetObj.dirNormal.normalize();		
 		
