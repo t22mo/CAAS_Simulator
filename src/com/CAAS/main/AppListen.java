@@ -101,11 +101,13 @@ public class AppListen implements ApplicationListener {
 			double	vDis	= (double)(long)nodeJson.get("view_distance");
 			int		id		= (int)(long)	nodeJson.get("id");
 			int		port	= (int)(long)	nodeJson.get("port");
-			boolean trackable = (boolean)	nodeJson.get("trackable");
+			boolean rotate = (boolean)	nodeJson.get("rotate");
+			String	temp1	= (String)		nodeJson.get("temp1");
+			String	temp2	= (String)		nodeJson.get("temp2");
 
 			// 현재 이용가능한 카메라 노드 ID 리스트 생성
 			global.availableCameraNodeID.push(id);
-			camList.add(new CameraNode(x,y,v_x,v_y,vAngle,vDis,id,port,trackable,eventBus));
+			camList.add(new CameraNode(x,y,v_x,v_y,vAngle,vDis,id,port,rotate,temp1,temp2,eventBus));
 		}
 		global.MAX_PORT_NUMBER = 1000 + camList.size();
 		global.camList = camList;

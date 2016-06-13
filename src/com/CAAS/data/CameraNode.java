@@ -1,9 +1,6 @@
 package com.CAAS.data;
 
 import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.Random;
 
 import com.CAAS.network.protocol.ChainMessageProtocol;
 import com.badlogic.gdx.graphics.Color;
@@ -12,14 +9,8 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Vector;
-import com.badlogic.gdx.scenes.scene2d.Event;
-import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.net.NetClient;
-import io.vertx.core.net.NetClientOptions;
-import io.vertx.core.net.NetSocket;
 
 
 public class CameraNode {
@@ -36,8 +27,9 @@ public class CameraNode {
 	public int id; //식별자
 	public int port; // 포트
 
-	public boolean trackable = true; //실제 카메라 연동 여부
+	public boolean rotate = true; //실제 카메라 연동 여부
 	public String camIP; //실제 카메라 ip주소
+	public String temp1,temp2;
 	public double rState;
 
 	Texture nodeTexture;
@@ -60,7 +52,7 @@ public class CameraNode {
 		return instance;
 	}	
 	
-	public CameraNode(double x,double y,double v_x, double v_y,double vAngle,double vDis,int id, int port, boolean trackable, EventBus eventBus)
+	public CameraNode(double x,double y,double v_x, double v_y,double vAngle,double vDis,int id, int port, boolean rotate, String temp1, String temp2, EventBus eventBus)
 	{
 		pos 		= new Vector2D(x, y);
 		dirNormal 	= new Vector2D(v_x,v_y);	
@@ -69,10 +61,12 @@ public class CameraNode {
 		this.vDis	= vDis;
 		this.id		= id;
 		this.port = port;
-		this.trackable = trackable;
+		this.rotate = rotate;
 		blockList = new ArrayList<BlockData>();
 		routeList = new ArrayList<Vector2D>();
 		this.eventBus = eventBus;
+		this.temp1 = temp1;
+		this.temp2 = temp2;
 		active = false;
 		rState = 0;
 		
@@ -105,6 +99,18 @@ public class CameraNode {
 		{
 			blockList.add(new BlockData(1+i%2,h[i],i+1));
 		}*/
+
+		if(rotate==true) {
+			ChainMessageProtocol msg = new ChainMessageProtocol("rotate_info");
+			msg.put("temp1", "temp1");
+			msg.put("temp2", "temp2");
+
+			DeliveryOptions options = new DeliveryOptions()
+					.setCodecName("HashChainCodec")
+					.addHeader("port",""+port);
+			eventBus.send("rotate_info",msg,options);
+		}
+
 	}
 
 	public void update()
@@ -127,7 +133,7 @@ public class CameraNode {
 			}
 			prvRouteTime = SimulatorState.elapsedTime;
 		}
-		if(trackable == true)
+		if(rotate == true)
 		{
 			//rotateViewVector();
 		}
@@ -149,7 +155,7 @@ public class CameraNode {
 		sRenderer.arc((float)pos.x, (float)pos.y, (float)vDis, (float)sAngle, (float)vAngle);
 		
 		//노드
-		if(trackable==false)
+		if(rotate ==false)
 			sRenderer.setColor(Color.BLUE);
 		else
 			sRenderer.setColor(Color.RED);

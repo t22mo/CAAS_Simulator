@@ -64,6 +64,14 @@ public class EventManager extends AbstractVerticle {
             }
         });
 
+
+        eventBus.consumer("rotate_info",message->{
+            int port = Integer.parseInt(message.headers().get("port"));
+            ChainMessageProtocol body = (ChainMessageProtocol) message.body();
+            NetSocket socket = global.socketList.get(port);
+            socket.write(body.encode());
+        });
+
         eventBus.consumer("location_info",message->{
             int port = Integer.parseInt(message.headers().get("port"));
             ChainMessageProtocol body = (ChainMessageProtocol) message.body();
