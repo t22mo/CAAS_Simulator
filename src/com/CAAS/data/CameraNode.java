@@ -108,8 +108,6 @@ public class CameraNode {
 		{
 			if(routeProg<routeList.size()-1)
 			{
-
-
 				routeProg++;
 				this.pos.x = routeList.get(routeProg).x;
 				this.pos.y = routeList.get(routeProg).y;
@@ -137,9 +135,9 @@ public class CameraNode {
 		else
 		{
 			if(inSight==true)
-				sRenderer.setColor(0.0f , 1.0f, 0.0f, 0.8f);
+				sRenderer.setColor(0.0f , 1.0f, 0.0f, 0.7f);
 			else
-				sRenderer.setColor(1.0f , 1.0f, 0.0f, 0.4f + 0.8f);
+				sRenderer.setColor(1.0f , 1.0f, 0.0f, 0.6f);
 		}
 		sRenderer.arc((float)pos.x, (float)pos.y, (float)vDis, (float)sAngle, (float)vAngle);
 		

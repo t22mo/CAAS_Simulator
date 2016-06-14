@@ -16,7 +16,7 @@ public class StartButton extends Button {
 	@Override
 	public void draw(SpriteBatch spriteBatch) {
 		// TODO Auto-generated method stub
-		spriteBatch.draw(textures.get(touchFlag?1:0),x,y,width,height);
+		spriteBatch.draw(textures.get(  2*(SimulatorState.simulatorState?1:0)+(touchFlag?1:0) ) ,x,y,width,height);
 	}
 
 	@Override
@@ -35,18 +35,6 @@ public class StartButton extends Button {
 				{
 					SimulatorState.simulatorState = !SimulatorState.simulatorState;
 					touchFlag = true;
-					
-					/*if(SimulatorState.simulatorState == false)
-					{
-						if(TargetObject.getInstance(null).findInRangeNode ( CameraNode.getInstance() )!=-1)
-							SimulatorState.simulatorState = !SimulatorState.simulatorState;
-						else
-						{
-							//도둑을 범위 안으로 추가해야 함 
-						}
-					}
-					else
-						SimulatorState.simulatorState = !SimulatorState.simulatorState;*/
 				}
 
 			}

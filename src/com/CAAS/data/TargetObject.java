@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Vector;
 import de.tudresden.sumo.cmd.Vehicle;
 import de.tudresden.ws.container.SumoPosition2D;
 import io.vertx.core.Vertx;
@@ -87,9 +88,14 @@ public class TargetObject {
 		}*/
 
 		try {
-	//		SumoPosition2D crm_pos = (SumoPosition2D) conn.do_job_get(Vehicle.getPosition(v_crm));
-	//		this.pos = translateRouteData(new Vector2D(crm_pos.x,crm_pos.y));
-	//		conn.do_timestep();
+			SumoPosition2D crm_pos = (SumoPosition2D) conn.do_job_get(Vehicle.getPosition(v_crm));
+			Vector2D newPos = translateRouteData(new Vector2D(crm_pos.x,crm_pos.y));
+
+			this.dirNormal.x = newPos.x-this.pos.x;
+			this.dirNormal.y = newPos.y-this.pos.y;
+			this.dirNormal.normalize();
+
+			this.pos = newPos;
 		}
 		catch(Exception e)
 		{
@@ -176,19 +182,24 @@ public class TargetObject {
 		msg.put("ex",""+String.format("%.2f",this.pos.x));
 		msg.put("ey",""+String.format("%.2f",this.pos.y));
 		sendNetworkMessage("deactivate_node",arr.get(select).port, msg);
+		int prv_node;
 
 		inSight = false;
-		traceLineEnabled = true;
 		arr.get(select).inSight = false;
 		arr.get(select).active = false;
+		prv_node = select;
 		select = -1;
 		sightEnd = pos.clone();
 
-		int mx = selectMaximumArea(CameraNode.getInstance());
-		if(mx!=-1)
+		minLenthReturn mn = selectMinimumLength(prv_node);
+		if(mn.sel !=-1)
 		{
-			activateNode(arr,mx);
+			activateNode(arr, mn.sel);
+			arr.get(mn.sel).rotateViewVector( mn.rotation*80 );
 		}
+
+		//int mx = selectMaximumArea(CameraNode.getInstance());
+
 	}
 	public void sendNetworkMessage(String channel, int port,ChainMessageProtocol msg)
 	{
@@ -249,122 +260,7 @@ public class TargetObject {
 		return false;
 	}
 
-	/*
-	arr		: 카메라 노드의 목록.
-	반환값	: 가장 넓은 범위가 겹치는 카메라 노드의 ArrayList상에서의 인덱스. 모두 겹치지 않는다면, -1.
-	 */
-	public int selectMaximumArea(ArrayList<CameraNode> arr) //모든 카메라 노드 중에서 도둑이 예상 이동범위와 가장 많이 겹치는 카메라를 찾음.
-	{
-		double max=-99999;
-		int sel=-1;
-		
-		for(int i=0 ; i<arr.size() ; i++)
-		{
-			CameraNode cn = arr.get(i);
 
-			double area = getIntersectingArea(cn, 20, new Vector2D(sightEnd.x-sightStart.x,sightEnd.y-sightStart.y), 200, 60); //분할횟수, 예상 이동 거리는 200, 각도는 60으로 고정함.
-			if(max<area && area>0)
-			{
-				max = area;
-				sel = i;
-			}
-		}
-		if(sel==-1) //만일 위의 범위에서 겹치는 노드를 찾지 못하였다면,
-		{
-			for(int i=0 ; i<arr.size() ; i++)
-			{
-				CameraNode cn = arr.get(i);
-
-				double area = getIntersectingArea(cn, 20, new Vector2D(sightEnd.x-sightStart.x,sightEnd.y-sightStart.y), 300, 90); //거리를 300, 각도는 90으로 고정하여 재검사.
-				if(max<area && area>0)
-				{
-					max = area;
-					sel = i;
-				}
-			}
-		}
-		return sel; //있으면 카메라 노드 인덱스 리턴. 없으면 -1
-	}
-
-
-	/*
-	target	: 대상 카메라 노드의 인스턴스
-	n		: 겹치는 면적 계산 시 분할 횟수
-	normal	: 도둑의 현재 이동 방향 벡터
-	len		: 도둑의 예상 이동 거리
-	angle	: 도둑의 예상 이동 범위 각도
-	반환값	: 도둑의 예상 이동 범위와 카메라 노드의 시야 범위중 겹치는 부분의 근사값.
-	 */
-	public double getIntersectingArea( CameraNode target, int n, Vector2D normal, double len, double angle) //임의의 카메라 노드 시야와 도둑의 예상 이동 범위와의 겹치는 면적 근사값. target:카메라 노드 인스턴스, n: 분할횟수, len:도둑의 예상 거리
-	{
-		double area = 0, tanTheta = Math.tan(angle/2/360*2*Math.PI);
-		ArrayList<Vector2D> vList = new ArrayList<Vector2D>();
-		boolean[] chk = new boolean[6];
-		
-		if(normal.x==0 && normal.y==0)
-			return -1;
-		normal.normalize();
-
-		for(int i=0 ; i<6 ; i++)
-			vList.add(new Vector2D(0,0));
-		vList.get(1).x = vList.get(3).x = vList.get(5).x = this.pos.x;
-		vList.get(1).y = vList.get(3).y = vList.get(5).y = this.pos.y;
-		
-		for(int i=1 ; i<=n ; i++)
-		{
-			vList.get(0).x = vList.get(1).x;
-			vList.get(0).y = vList.get(1).y;
-			
-			vList.get(1).x += (len / (double)n) * normal.x;
-			vList.get(1).y += (len / (double)n) * normal.y;
-			
-			vList.get(2).x = vList.get(3).x;  
-			vList.get(2).y = vList.get(3).y; 
-			
-			vList.get(3).x += ((len * tanTheta) / (double)n) * normal.y;
-			vList.get(3).x += (len / (double)n) * normal.x;
-			vList.get(3).y -= ((len * tanTheta) / (double)n) * normal.x;
-			vList.get(3).y += (len / (double)n) * normal.y;
-			
-			vList.get(4).x = vList.get(5).x;
-			vList.get(4).y = vList.get(5).y;
-			
-			vList.get(5).x -= ((len * tanTheta) / (double)n) * normal.y;
-			vList.get(5).x += (len / (double)n) * normal.x;
-			vList.get(5).y += ((len * tanTheta) / (double)n) * normal.x;
-			vList.get(5).y += (len / (double)n) * normal.y;
-			
-			for(int j=0 ; j<6 ; j++)
-			{
-				if(getDistance(vList.get(j),target.pos) < target.vDis && isInRange(target.sAngle,target.vAngle,calcAngle(target.pos,vList.get(j))))
-					chk[j] = true;
-				else
-					chk[j] = false;
-			}
-
-			if(chk[0]==true && chk[1]==true)
-				area+=(len/(double)n) * 5;
-
-			if( (chk[0]?1:0) + (chk[1]?1:0) + (chk[2]?1:0) + (chk[3]?1:0) >=3 )
-				area+= Math.pow(len,2) * (2*i-1) * tanTheta / ( 2*Math.pow(n, 2) );
-
-			if( (chk[0]?1:0) + (chk[1]?1:0) + (chk[4]?1:0) + (chk[5]?1:0) >=3 )
-				area+= Math.pow(len,2) * (2*i-1) * tanTheta / ( 2*Math.pow(n, 2) );
-		}
-		if(area>0)
-		{
-			Vector2D tVector = new Vector2D(target.pos.x-this.pos.x,target.pos.y-this.pos.y);
-			double cosTheta =  (normal.x * tVector.x + normal.y * tVector.y) / tVector.getLength();
-			cosTheta = Math.abs(cosTheta);
-			double v = tVector.getLength();
-			double k = cosTheta * v;
-			area/=k;
-
-			System.out.println(target.id + " : " + cosTheta+", "+ v +", "+k);
-
-		}
-		return area;
-	}
 	public double getDistance(Vector2D a,Vector2D b) //거리 계산
 	{
 		return Math.sqrt( Math.pow((a.x-b.x),2) + Math.pow((a.y-b.y),2) );
@@ -415,6 +311,205 @@ public class TargetObject {
 		pos.x = (pos.x - 230.40) / 1034.3 * SimulatorState.mapWidth;
 		pos.y = (pos.y - 1636.26) / 554.09 * SimulatorState.mapHeight;
 		return pos;
+	}
+
+	public minLenthReturn selectMinimumLength(int prv)
+	{
+		ArrayList<CameraNode> arr = CameraNode.getInstance();
+		int sel = -1;
+		minLenthReturn res = new minLenthReturn(0,99999,-1);
+
+		for(int i=0 ; i<arr.size() ; i++)
+		{
+			if(i==prv)
+				continue;
+			minLenthReturn t = getMinimumDistance(arr.get(i));
+
+			if(res.min>t.min) {
+				res = t;
+				res.sel = i;
+			}
+		}
+		return res;
+	}
+	minLenthReturn getMinimumDistance(CameraNode cn)
+	{
+		Vector2D tv = new Vector2D(0,0);
+		minLenthReturn res = new minLenthReturn(0,9999999,-1);
+		double[] angleList = new double[6];
+		double theta;
+
+		angleList[0] = cn.vAngle/2;
+		angleList[1] = -1*cn.vAngle/2;
+
+		angleList[2] = 80 + cn.vAngle/2;
+		angleList[3] = 80 - cn.vAngle/2;
+
+		angleList[4] = -80 + cn.vAngle/2;
+		angleList[5] = -80 + -1*cn.vAngle/2;
+
+		for(int i=0 ; i<angleList.length ; i++)
+		{
+			if(cn.rotate==false && i>=2)
+				break;
+			Vector2D v = rotateVector(cn.dirNormal,angleList[i]);
+			double k = ( v.x * ( this.pos.y - cn.pos.y) + v.y * ( cn.pos.x - this.pos.x) ) / (this.dirNormal.x*v.y - this.dirNormal.y*v.x);
+			double t = ( this.dirNormal.x * (cn.pos.y - this.pos.y) + this.dirNormal.y * (this.pos.x - cn.pos.x) ) / (this.dirNormal.y * v.x - this.dirNormal.x * v.y);
+
+			if(k>0 && res.min>k && t>0 && t<=cn.vDis)
+			{
+				tv=v;
+				res.min = k;
+				if(i==0 || i==1)
+					res.rotation = 0;
+				else if(i==2 || i==3)
+					res.rotation = 1;
+				else
+					res.rotation = -1;
+			}
+		}
+
+		return res;
+	}
+
+	Vector2D rotateVector(Vector2D v, double a)
+	{
+		a = a*Math.PI/180;
+		return new Vector2D( Math.cos(a)*v.x - Math.sin(a)*v.y , Math.sin(a) *v.x + Math.cos(a)*v.y );
+	}
+
+
+
+
+	/*
+	arr		: 카메라 노드의 목록.
+	반환값	: 가장 넓은 범위가 겹치는 카메라 노드의 ArrayList상에서의 인덱스. 모두 겹치지 않는다면, -1.
+	 */
+	public int selectMaximumArea(ArrayList<CameraNode> arr) //모든 카메라 노드 중에서 도둑이 예상 이동범위와 가장 많이 겹치는 카메라를 찾음.
+	{
+		double max=-99999;
+		int sel=-1;
+
+		for(int i=0 ; i<arr.size() ; i++)
+		{
+			CameraNode cn = arr.get(i);
+
+			double area = getIntersectingArea(cn, 20, new Vector2D(sightEnd.x-sightStart.x,sightEnd.y-sightStart.y), 200, 60); //분할횟수, 예상 이동 거리는 200, 각도는 60으로 고정함.
+			if(max<area && area>0)
+			{
+				max = area;
+				sel = i;
+			}
+		}
+		if(sel==-1) //만일 위의 범위에서 겹치는 노드를 찾지 못하였다면,
+		{
+			for(int i=0 ; i<arr.size() ; i++)
+			{
+				CameraNode cn = arr.get(i);
+
+				double area = getIntersectingArea(cn, 20, new Vector2D(sightEnd.x-sightStart.x,sightEnd.y-sightStart.y), 300, 90); //거리를 300, 각도는 90으로 고정하여 재검사.
+				if(max<area && area>0)
+				{
+					max = area;
+					sel = i;
+				}
+			}
+		}
+		return sel; //있으면 카메라 노드 인덱스 리턴. 없으면 -1
+	}
+
+
+	/*
+	target	: 대상 카메라 노드의 인스턴스
+	n		: 겹치는 면적 계산 시 분할 횟수
+	normal	: 도둑의 현재 이동 방향 벡터
+	len		: 도둑의 예상 이동 거리
+	angle	: 도둑의 예상 이동 범위 각도
+	반환값	: 도둑의 예상 이동 범위와 카메라 노드의 시야 범위중 겹치는 부분의 근사값.
+	 */
+	public double getIntersectingArea( CameraNode target, int n, Vector2D normal, double len, double angle) //임의의 카메라 노드 시야와 도둑의 예상 이동 범위와의 겹치는 면적 근사값. target:카메라 노드 인스턴스, n: 분할횟수, len:도둑의 예상 거리
+	{
+		double area = 0, tanTheta = Math.tan(angle/2/360*2*Math.PI);
+		ArrayList<Vector2D> vList = new ArrayList<Vector2D>();
+		boolean[] chk = new boolean[6];
+
+		if(normal.x==0 && normal.y==0)
+			return -1;
+		normal.normalize();
+
+		for(int i=0 ; i<6 ; i++)
+			vList.add(new Vector2D(0,0));
+		vList.get(1).x = vList.get(3).x = vList.get(5).x = this.pos.x;
+		vList.get(1).y = vList.get(3).y = vList.get(5).y = this.pos.y;
+
+		for(int i=1 ; i<=n ; i++)
+		{
+			vList.get(0).x = vList.get(1).x;
+			vList.get(0).y = vList.get(1).y;
+
+			vList.get(1).x += (len / (double)n) * normal.x;
+			vList.get(1).y += (len / (double)n) * normal.y;
+
+			vList.get(2).x = vList.get(3).x;
+			vList.get(2).y = vList.get(3).y;
+
+			vList.get(3).x += ((len * tanTheta) / (double)n) * normal.y;
+			vList.get(3).x += (len / (double)n) * normal.x;
+			vList.get(3).y -= ((len * tanTheta) / (double)n) * normal.x;
+			vList.get(3).y += (len / (double)n) * normal.y;
+
+			vList.get(4).x = vList.get(5).x;
+			vList.get(4).y = vList.get(5).y;
+
+			vList.get(5).x -= ((len * tanTheta) / (double)n) * normal.y;
+			vList.get(5).x += (len / (double)n) * normal.x;
+			vList.get(5).y += ((len * tanTheta) / (double)n) * normal.x;
+			vList.get(5).y += (len / (double)n) * normal.y;
+
+			for(int j=0 ; j<6 ; j++)
+			{
+				if(getDistance(vList.get(j),target.pos) < target.vDis && isInRange(target.sAngle,target.vAngle,calcAngle(target.pos,vList.get(j))))
+					chk[j] = true;
+				else
+					chk[j] = false;
+			}
+
+			if(chk[0]==true && chk[1]==true)
+				area+=(len/(double)n) * 5;
+
+			if( (chk[0]?1:0) + (chk[1]?1:0) + (chk[2]?1:0) + (chk[3]?1:0) >=3 )
+				area+= Math.pow(len,2) * (2*i-1) * tanTheta / ( 2*Math.pow(n, 2) );
+
+			if( (chk[0]?1:0) + (chk[1]?1:0) + (chk[4]?1:0) + (chk[5]?1:0) >=3 )
+				area+= Math.pow(len,2) * (2*i-1) * tanTheta / ( 2*Math.pow(n, 2) );
+		}
+		if(area>0)
+		{
+			Vector2D tVector = new Vector2D(target.pos.x-this.pos.x,target.pos.y-this.pos.y);
+			double cosTheta =  (normal.x * tVector.x + normal.y * tVector.y) / tVector.getLength();
+			cosTheta = Math.abs(cosTheta);
+			double v = tVector.getLength();
+			double k = cosTheta * v;
+			area/=k;
+
+			System.out.println(target.id + " : " + cosTheta+", "+ v +", "+k);
+
+		}
+		return area;
+	}
+
+	class minLenthReturn
+	{
+		int rotation;
+		double min;
+		int sel;
+
+		public minLenthReturn(int r, double m, int s)
+		{
+			rotation = r;
+			min = m;
+			sel = s;
+		}
 	}
 }
 

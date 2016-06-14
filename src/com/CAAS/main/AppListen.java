@@ -1,8 +1,9 @@
 package com.CAAS.main;
 
+import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.ArrayList;
+import java.util.*;
 
 import com.CAAS.data.*;
 import com.CAAS.network.model.Global;
@@ -10,6 +11,9 @@ import com.CAAS.network.protocol.ChainMessageProtocol;
 import com.CAAS.network.protocol.HashChainCodec;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop;
+import de.tudresden.sumo.cmd.Vehicle;
+import de.tudresden.ws.container.SumoBoundingBox;
+import de.tudresden.ws.container.SumoPosition2D;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
@@ -28,9 +32,12 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import skku.selab.caas.AreaPredictor;
+import skku.selab.caas.Painter;
 
 public class AppListen implements ApplicationListener {
 
+	//Simulator variables
 	ArrayList<CameraNode>	camList;
 	TargetObject			targetObj; 
 	SpriteBatch				spriteBatch;
@@ -43,20 +50,26 @@ public class AppListen implements ApplicationListener {
 	StepButton				stepBtn;
 	Texture					backgroundTex;
 	Texture					dummy;
+	int stepCount = 0;
 
-	//Networking Variable
+	//Networking variables
 	Global global = Global.getInstance();
 	Vertx vertx;
 	EventBus eventBus;
 	float realTime=0;
 
-	//SUMO variable
+	//SUMO variables
 	SumoTraciConnection conn;
 	private static final Logger log = LogManager.getLogger(AppListen.class);
-	static String sumo_bin = "D:/Program Files (x86)/DLR/Sumo/bin/sumo-gui.exe";
-	static String config_file = "C:/Users/T22mo/workspace/caas_trass/KU_CAAS_traas/net/osm.sumocfg";
-	static double step_length = 0.01;
+	static String sumo_bin = "D:/Program Files (x86)/DLR/Sumo/bin/sumo.exe";
+	static String config_file = "net/osm.sumocfg";
+	static double step_length = 0.5;
 	String v_crm;
+
+	//Area predictor variables
+	Painter p;
+	AreaPredictor ap;
+	int yOffset = 1300;
 
 	@Override
 	public void create() {
@@ -76,6 +89,8 @@ public class AppListen implements ApplicationListener {
 		ArrayList<Texture> startTexList = new ArrayList<Texture>();
 		startTexList.add(new Texture(Gdx.files.internal("res/img/start_0.png")));
 		startTexList.add(new Texture(Gdx.files.internal("res/img/start_1.png")));
+		startTexList.add(new Texture(Gdx.files.internal("res/img/pause_0.png")));
+		startTexList.add(new Texture(Gdx.files.internal("res/img/pause_1.png")));
 
 		ArrayList<Texture> stepTexList = new ArrayList<Texture>();
 		stepTexList.add(new Texture(Gdx.files.internal("res/img/step_0.png")));
@@ -124,6 +139,21 @@ public class AppListen implements ApplicationListener {
 		largeFont		= new BitmapFont(Gdx.files.internal("res/font/mspgothic.fnt"),Gdx.files.internal("res/font/mspgothic.png"),false);
 		largeFont.getData().setScale(2f);
 
+
+
+		//cunstruct AreaPredictor
+		ap = new AreaPredictor();
+
+		//construct Painter
+		p = new Painter();
+		@SuppressWarnings("unused")
+		SumoBoundingBox sbb = null;
+
+		p.setSize(1300, 1200, 50);
+		log.error("x_max:"+1300+"\ty_max:"+1200);
+		int yOffset = 1300;
+
+
 		//Start Sumo
 		conn = new SumoTraciConnection(sumo_bin, config_file);
 		conn.addOption("step-length", "0.1"); //timestep 100 ms
@@ -144,12 +174,100 @@ public class AppListen implements ApplicationListener {
 	
 	public void update()
 	{
+		stepCount++;
 		inputUpdate();
 		targetObj.update(conn,v_crm);
 		for(int i=0 ; i<camList.size() ; i++)
 		{
 			camList.get(i).update();
 		}
+
+		//Area predictor update
+		//vars for drawing.
+		int[] x			 = new int[1];
+		int[] y			 = new int[1];
+		int[] width 	 = new int[1];
+		int[] height 	 = new int[1];
+		int[] arcAngle	 = new int[1];
+		int[] startAngle = new int[1];
+		double	vang;
+
+		// keep update GUI
+		// draw arc(blackbox) for all of vehicles
+		p.clearGraph();
+
+		try {
+			SumoPosition2D _pos = (SumoPosition2D) conn.do_job_get(Vehicle.getPosition(v_crm));
+
+				 /*
+				 SumoVehicleSignal signal = new SumoVehicleSignal(Vehicle.getSignals(v_crm).get_command().id());
+
+				 SumoVehicleSignal sig = new  SumoVehicleSignal(0);
+
+				 log.error("signal: " +signal.getState(SumoVehicleSignalState.VEH_SIGNAL_BRAKELIGHT));
+					*/
+
+			width[0] = (int) 100;
+			height[0] = (int) 100;
+
+			x[0] = (int) _pos.x - (int) width[0] / 2;
+			y[0] = (int) _pos.y - yOffset + (int) height[0] / 2;
+			arcAngle[0] = (int) 40;
+
+			vang = (double) conn.do_job_get(Vehicle.getAngle(v_crm));
+			startAngle[0] = (int) -(vang + 270) % 360 - (int) arcAngle[0] / 2;
+
+			String vroad = (String) conn.do_job_get(Vehicle.getRoadID(v_crm));
+
+			if (!vroad.contains(":")) {
+				//log.error("vNum: " + vList.size() + " road: " + vroad + " angle: " + vang);
+				if (ap.isMoved(vroad)) {
+
+					// insert turn information of vehicle
+					ap.insertNewTurn(ap.getTurn(vang));
+					log.error("Turn Trace: " + ap.getTurnTrace());
+
+					ap.update();
+				}
+			}
+
+			// get current position of vehicle
+			log.error(_pos.x + "," + (_pos.y - yOffset));
+			ap.setVehiclePosition(_pos.x, _pos.y - yOffset);
+
+			// get current speed of vehicle
+			double vspd = (double) conn.do_job_get(Vehicle.getSpeed(v_crm));
+			log.error("speed: " + vspd);
+			ap.setVehicleSpeed(vspd);
+
+			// set diameter of area
+			ap.setDiameterOffset(vspd * 10.0 + 100.0);
+
+			ap.makeArea((int) vang);
+
+			java.util.List<Point> area = ap.getArea();
+
+			log.error("---Direction : " + ap.getDirection());
+
+
+			// add point of vehicle to draw
+			if(stepCount%100==0) {
+				Point vPoint = new Point();
+				vPoint.setLocation(_pos.x, _pos.y);
+				area.add(vPoint);
+
+				p.drawArea(area);
+				p.drawArc4v(x, y, width, height, startAngle, arcAngle);
+				p.repaint();
+			}
+			//sumo update
+			if(SimulatorState.simulatorState==true)
+				conn.do_timestep();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 	public void draw()
 	{
@@ -186,7 +304,7 @@ public class AppListen implements ApplicationListener {
 
 		blockToggleBtn.draw(spriteBatch);
 		startBtn.draw(spriteBatch);
-		stepBtn.draw(spriteBatch);
+	//	stepBtn.draw(spriteBatch);
 
 		if(TargetObject.getInstance(eventBus).inSight==true)
 		{
@@ -303,7 +421,7 @@ public class AppListen implements ApplicationListener {
 		}
 		if(Gdx.input.isKeyPressed(Input.Keys.C))
 		{
-			camList.get(2).rotateViewVector((double)-90);
+			camList.get(2).rotateViewVector((double)-80);
 		}
 		if(Gdx.input.isKeyPressed(Input.Keys.X))
 		{
@@ -311,14 +429,14 @@ public class AppListen implements ApplicationListener {
 		}
 		if(Gdx.input.isKeyPressed(Input.Keys.Z))
 		{
-			camList.get(2).rotateViewVector((double)90);
+			camList.get(2).rotateViewVector((double)80);
 		}
 		targetObj.dirNormal.normalize();		
 		
 		//Button clicks
 		blockToggleBtn.inputUpdate();
 		startBtn.inputUpdate();
-		stepBtn.inputUpdate();
+	//	stepBtn.inputUpdate();
 	}
 	public void parseObjectRoute()
 	{
